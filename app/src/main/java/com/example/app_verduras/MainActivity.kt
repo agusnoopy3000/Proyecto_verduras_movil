@@ -1,47 +1,45 @@
-package com.example.app_verduras
+package com.tuorg.huertohogar
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.app_verduras.ui.theme.AppverdurasTheme
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.navigation.compose.*
+import com.example.app_verduras.ui.screens.*
+import com.example.app_verduras.viewmodel.*
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
-            AppverdurasTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
+            HuertoHogarApp()
         }
     }
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+fun HuertoHogarApp() {
+    val navController = rememberNavController()
+    val homeVM = remember { HomeViewModel() }
+    val catalogVM = remember { CatalogViewModel() }
+    val cartVM = remember { CartViewModel() }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    AppverdurasTheme {
-        Greeting("Android")
+    Scaffold { padding ->
+        NavHost(
+            navController = navController,
+            startDestination = "home",
+            modifier = Modifier.padding(padding)
+        ) {
+            composable("home") {
+                HomeScreen(navController, homeVM)
+            }
+            composable("catalog") {
+                CatalogScreen(catalogVM)
+            }
+            composable("cart") {
+                CartScreen(cartVM)
+            }
+        }
     }
 }
