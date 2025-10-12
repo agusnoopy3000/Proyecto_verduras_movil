@@ -55,7 +55,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
                 }
             }
             AsyncImage(
-                model = R.drawable.huertohogar_logo,
+                model = R.drawable.huerto_hogar,
                 contentDescription = "HuertoHogar Logo",
                 modifier = Modifier
                     .size(120.dp)
@@ -64,7 +64,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
             )
         }
 
-        Divider()
+
 
         Text(
             "Categorías destacadas",
