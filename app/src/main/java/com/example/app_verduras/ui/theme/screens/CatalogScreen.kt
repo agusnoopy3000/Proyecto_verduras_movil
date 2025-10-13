@@ -1,4 +1,4 @@
-package com.example.app_verduras.ui.screens
+package com.example.app_verduras.ui.theme.screens
 
 // Import necesarios (Compose Material3 + Foundation + Coil)
 import androidx.compose.foundation.layout.*
@@ -82,7 +82,7 @@ fun CategoryDropdown(categories: List<String>, selected: String?, onSelect: (Str
             onValueChange = { /* readOnly */ },
             readOnly = true,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier.widthIn(min = 160.dp)
+            modifier = Modifier.menuAnchor().widthIn(min = 160.dp)
         )
 
         ExposedDropdownMenu(
@@ -122,7 +122,7 @@ fun ProductCard(product: Producto, onAdd: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AsyncImage(
-                model = product.img ?: "file:///android_asset/default-fruta.png",
+                model = product.img ?: "file:///android_asset/default.png",
                 contentDescription = product.nombre,
                 modifier = Modifier.size(80.dp)
             )

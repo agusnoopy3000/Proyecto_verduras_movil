@@ -9,6 +9,8 @@ class RepositorioPruebas {
         Producto("F001", "Manzana roja", "Frutas", 990.0, 12, "https://picsum.photos/100"),
         Producto("V001", "Zanahoria orgánica", "Verduras", 750.0, 30, "https://picsum.photos/101"),
         Producto("L001", "Leche entera", "Lácteos", 1200.0, 8, "https://picsum.photos/102"),
+        Producto("H001", "Huevos de campo", "Huevos", 2500.0, 24, "https://picsum.photos/103"),
+        Producto("P001", "Pan integral", "Panadería", 2200.0, 15, "https://picsum.photos/104")
     )
 
     fun getProducts(): List<Producto> = products

@@ -1,0 +1,66 @@
+[
+  {
+    "codigo": "V001",
+    "nombre": "Zanahoria orgánica",
+    "categoria": "Verduras",
+    "precio": 750,
+    "tamano": "1Kg",
+    "img": "file:///android_asset/zanahoria.png"
+  },
+  {
+    "codigo": "V002",
+    "nombre": "Tomate premium",
+    "categoria": "Verduras",
+    "precio": 850,
+    "tamano": "1Kg",
+    "img": "file:///android_asset/tomate.png"
+  },
+  {
+    "codigo": "V003",
+    "nombre": "Lechuga fresca",
+    "categoria": "Verduras",
+    "precio": 600,
+    "tamano": "1 unidad",
+    "img": "file:///android_asset/lechuga.png"
+  },
+  {
+    "codigo": "F001",
+    "nombre": "Manzana roja",
+    "categoria": "Frutas",
+    "precio": 1200,
+    "tamano": "1Kg",
+    "img": "file:///android_asset/manzana.png"
+  },
+  {
+    "codigo": "F002",
+    "nombre": "Banana de Ecuador",
+    "categoria": "Frutas",
+    "precio": 950,
+    "tamano": "1Kg",
+    "img": null
+  },
+  {
+    "codigo": "F003",
+    "nombre": "Naranja para jugo",
+    "categoria": "Frutas",
+    "precio": 800,
+    "tamano": "1Kg",
+    "img": null
+  },
+  {
+    "codigo": "L001",
+    "nombre": "Leche entera",
+    "categoria": "Lácteos",
+    "precio": 1200,
+    "tamano": "1L",
+    "img": null
+  },
+  {
+    "codigo": "H001",
+    "nombre": "Huevos de campo",
+    "categoria": "Huevos",
+    "precio": 2500,
+    "tamano": "1 docena",
+    "img": null
+  }
+]

@@ -3,24 +3,29 @@ package com.example.app_verduras
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavHostController
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
-import com.example.app_verduras.ui.screens.*
+import com.example.app_verduras.ui.screens.CartScreen
+import com.example.app_verduras.ui.theme.screens.CatalogScreen
 import com.example.app_verduras.ui.theme.screens.HomeScreen
-import com.example.app_verduras.viewmodel.*
-
-
+import com.example.app_verduras.ui.theme.screens.LoginScreen
+import com.example.app_verduras.ui.theme.screens.RegisterScreen
+import com.example.app_verduras.viewmodel.AuthViewModel
+import com.example.app_verduras.viewmodel.CartViewModel
+import com.example.app_verduras.viewmodel.CatalogViewModel
+import com.example.app_verduras.viewmodel.HomeViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,14 +36,10 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HuertoHogarApp() {
     val navController = rememberNavController()
-
-    // ViewModels persistentes
-    val homeVM = remember { HomeViewModel() }
-    val catalogVM = remember { CatalogViewModel() }
-    val cartVM = remember { CartViewModel() }
 
     val items = listOf(
         Screen.Home,
@@ -46,56 +47,89 @@ fun HuertoHogarApp() {
         Screen.Cart
     )
 
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route?.substringBefore('?')
+    val showBottomBar = currentRoute in items.map { it.route }
+
     Scaffold(
         bottomBar = {
-            NavigationBar {
-                val currentRoute = currentBackStackEntryAsState(navController)
-                items.forEach { screen ->
-                    NavigationBarItem(
-                        selected = currentRoute.value?.destination?.route == screen.route,
-                        onClick = {
-                            if (currentRoute.value?.destination?.route != screen.route) {
-                                navController.navigate(screen.route) {
-                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
+            if (showBottomBar) {
+                NavigationBar {
+                    items.forEach { screen ->
+                        NavigationBarItem(
+                            selected = currentRoute == screen.route,
+                            onClick = {
+                                if (currentRoute != screen.route) {
+                                    navController.navigate(screen.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
                                 }
-                            }
-                        },
-                        icon = { Icon(screen.icon, contentDescription = screen.label) },
-                        label = { Text(screen.label) }
-                    )
+                            },
+                            icon = { Icon(screen.icon, contentDescription = screen.label) },
+                            label = { Text(screen.label) }
+                        )
+                    }
                 }
             }
         }
-    ) { padding ->
+    ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Home.route,
-            modifier = Modifier.padding(padding)
+            startDestination = "login", // Empezamos en la pantalla de login
+            modifier = Modifier.padding(innerPadding)
         ) {
+            composable("login") {
+                LoginScreen(
+                    navController = navController,
+                    onLoginSuccess = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo("login") { inclusive = true }
+                        }
+                    }
+                )
+            }
+
+            composable("register") {
+                RegisterScreen(
+                    navController = navController,
+                    onRegisterSuccess = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo("login") { inclusive = true }
+                        }
+                    }
+                )
+            }
+
             composable(Screen.Home.route) {
+                val homeVM: HomeViewModel = viewModel()
                 HomeScreen(navController = navController, viewModel = homeVM)
             }
-            composable(Screen.Catalog.route) {
+
+            composable(
+                route = "${Screen.Catalog.route}?cat={cat}",
+                arguments = listOf(navArgument("cat") {
+                    nullable = true
+                    defaultValue = null
+                })
+            ) {
+                val catalogVM: CatalogViewModel = viewModel()
+                val cartVM: CartViewModel = viewModel()
                 CatalogScreen(viewModel = catalogVM, cartViewModel = cartVM)
             }
-            composable("catalog?cat={cat}",
-                arguments = listOf(navArgument("cat") { nullable = true })
-            ) { backStackEntry ->
-                val cat = backStackEntry.arguments?.getString("cat")
-                CatalogScreen(viewModel = catalogVM, cartViewModel = cartVM)
-                cat?.let { catalogVM.updateCategory(it) } // Aplica filtro si viene desde Home
+
+            composable(Screen.Cart.route) {
+                val cartVM: CartViewModel = viewModel()
+                CartScreen(navController = navController, viewModel = cartVM)
             }
         }
     }
 }
 
-private fun RowScope.currentBackStackEntryAsState(navController: NavHostController) {
-    TODO("Not yet implemented")
-}
-
-sealed class Screen(val route: String, val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector) {
+sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
     object Home : Screen("home", "Inicio", Icons.Default.Home)
     object Catalog : Screen("catalog", "Catálogo", Icons.Default.List)
     object Cart : Screen("cart", "Carrito", Icons.Default.ShoppingCart)
