@@ -13,19 +13,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.*
-import androidx.navigation.navArgument
-import com.example.app_verduras.ui.screens.CartScreen
-import com.example.app_verduras.ui.theme.screens.CatalogScreen
-import com.example.app_verduras.ui.theme.screens.HomeScreen
-import com.example.app_verduras.ui.theme.screens.LoginScreen
-import com.example.app_verduras.ui.theme.screens.RegisterScreen
-import com.example.app_verduras.viewmodel.AuthViewModel
-import com.example.app_verduras.viewmodel.CartViewModel
-import com.example.app_verduras.viewmodel.CatalogViewModel
-import com.example.app_verduras.viewmodel.HomeViewModel
+import com.example.app_verduras.dal.AppDatabase
+import com.example.app_verduras.repository.ProductoRepository
+import com.example.app_verduras.ui.screens.*
+import com.example.app_verduras.viewmodel.*
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,26 +31,43 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+// Clase sellada para las rutas de navegación
+sealed class Screen(val route: String, val label: String, val icon: ImageVector? = null) {
+    object Login : Screen("login", "Login")
+    object Register : Screen("register", "Registro")
+    object Home : Screen("home", "Inicio", Icons.Default.Home)
+    object Catalog : Screen("catalog", "Catálogo", Icons.Default.List)
+    object Cart : Screen("cart", "Carrito", Icons.Default.ShoppingCart)
+    object Confirmation : Screen("confirmation", "Confirmación")
+}
+
 @Composable
 fun HuertoHogarApp() {
     val navController = rememberNavController()
+    val context = LocalContext.current
+    val db = AppDatabase.getDatabase(context)
 
-    val items = listOf(
-        Screen.Home,
-        Screen.Catalog,
-        Screen.Cart
-    )
+    // --- DAOs y Repositorios ---
+    val userDao = db.userDao()
+    val productoDao = db.productoDao()
+    val pedidoDao = db.pedidoDao()
+    val productoRepository = ProductoRepository(productoDao, context.assets)
 
+    // --- ViewModels ---
+    val cartViewModel: CartViewModel = viewModel(factory = CartViewModel.Factory(productoRepository, pedidoDao))
+    val authViewModel: AuthViewModel = viewModel(factory = AuthViewModel.Factory(userDao))
+
+    // --- Lógica de la Bottom Bar ---
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route?.substringBefore('?')
-    val showBottomBar = currentRoute in items.map { it.route }
+    val currentRoute = navBackStackEntry?.destination?.route
+    val bottomBarItems = listOf(Screen.Home, Screen.Catalog, Screen.Cart)
+    val showBottomBar = currentRoute in bottomBarItems.map { it.route }
 
     Scaffold(
         bottomBar = {
             if (showBottomBar) {
                 NavigationBar {
-                    items.forEach { screen ->
+                    bottomBarItems.forEach { screen ->
                         NavigationBarItem(
                             selected = currentRoute == screen.route,
                             onClick = {
@@ -69,7 +81,7 @@ fun HuertoHogarApp() {
                                     }
                                 }
                             },
-                            icon = { Icon(screen.icon, contentDescription = screen.label) },
+                            icon = { screen.icon?.let { Icon(it, contentDescription = screen.label) } },
                             label = { Text(screen.label) }
                         )
                     }
@@ -79,58 +91,67 @@ fun HuertoHogarApp() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = "login", // Empezamos en la pantalla de login
+            startDestination = Screen.Login.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable("login") {
+            composable(Screen.Login.route) {
                 LoginScreen(
-                    navController = navController,
+                    authViewModel = authViewModel,
                     onLoginSuccess = {
                         navController.navigate(Screen.Home.route) {
-                            popUpTo("login") { inclusive = true }
+                            popUpTo(Screen.Login.route) { inclusive = true }
                         }
+                    },
+                    onNavigateToRegister = {
+                        navController.navigate(Screen.Register.route)
                     }
                 )
             }
 
-            composable("register") {
+            composable(Screen.Register.route) {
                 RegisterScreen(
-                    navController = navController,
+                    authViewModel = authViewModel,
                     onRegisterSuccess = {
                         navController.navigate(Screen.Home.route) {
-                            popUpTo("login") { inclusive = true }
+                            popUpTo(Screen.Login.route) { inclusive = true }
                         }
+                    },
+                    onNavigateToLogin = {
+                        navController.popBackStack()
                     }
                 )
             }
 
             composable(Screen.Home.route) {
-                val homeVM: HomeViewModel = viewModel()
+                val homeVM: HomeViewModel = viewModel(factory = HomeViewModelFactory(productoRepository))
                 HomeScreen(navController = navController, viewModel = homeVM)
             }
 
-            composable(
-                route = "${Screen.Catalog.route}?cat={cat}",
-                arguments = listOf(navArgument("cat") {
-                    nullable = true
-                    defaultValue = null
-                })
-            ) {
-                val catalogVM: CatalogViewModel = viewModel()
-                val cartVM: CartViewModel = viewModel()
-                CatalogScreen(viewModel = catalogVM, cartViewModel = cartVM)
+            composable(Screen.Catalog.route) {
+                val catalogVM: CatalogViewModel = viewModel(factory = CatalogViewModel.Factory(productoRepository))
+                CatalogScreen(viewModel = catalogVM, cartViewModel = cartViewModel)
             }
 
             composable(Screen.Cart.route) {
-                val cartVM: CartViewModel = viewModel()
-                CartScreen(navController = navController, viewModel = cartVM)
+                CartScreen(
+                    viewModel = cartViewModel,
+                    onConfirmOrder = {
+                        navController.navigate(Screen.Confirmation.route) {
+                            popUpTo(Screen.Home.route)
+                        }
+                    }
+                )
+            }
+
+            composable(Screen.Confirmation.route) {
+                ConfirmationScreen(
+                    onNavigateToHome = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Home.route) { inclusive = true }
+                        }
+                    }
+                )
             }
         }
     }
-}
-
-sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
-    object Home : Screen("home", "Inicio", Icons.Default.Home)
-    object Catalog : Screen("catalog", "Catálogo", Icons.Default.List)
-    object Cart : Screen("cart", "Carrito", Icons.Default.ShoppingCart)
 }

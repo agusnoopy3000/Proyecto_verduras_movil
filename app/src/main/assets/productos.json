@@ -2,65 +2,73 @@
   {
     "codigo": "V001",
     "nombre": "Zanahoria orgánica",
+    "descripcion": "Zanahorias frescas y crujientes, cultivadas sin pesticidas.",
     "categoria": "Verduras",
     "precio": 750,
-    "tamano": "1Kg",
-    "img": "file:///android_asset/zanahoria.png"
+    "stock": 50,
+    "img": "file:///android_asset/img/zanahoria.webp"
   },
   {
     "codigo": "V002",
     "nombre": "Tomate premium",
+    "descripcion": "Tomates rojos y jugosos, perfectos para ensaladas y salsas.",
     "categoria": "Verduras",
     "precio": 850,
-    "tamano": "1Kg",
-    "img": "file:///android_asset/tomate.png"
+    "stock": 40,
+    "img": "file:///android_asset/img/Tomates.webp"
   },
   {
     "codigo": "V003",
     "nombre": "Lechuga fresca",
+    "descripcion": "Lechuga hidropónica, limpia y lista para consumir.",
     "categoria": "Verduras",
     "precio": 600,
-    "tamano": "1 unidad",
-    "img": "file:///android_asset/lechuga.png"
+    "stock": 30,
+    "img": null
   },
   {
     "codigo": "F001",
     "nombre": "Manzana roja",
+    "descripcion": "Manzanas rojas dulces y jugosas, ideales para cualquier momento.",
     "categoria": "Frutas",
     "precio": 1200,
-    "tamano": "1Kg",
-    "img": "file:///android_asset/manzana.png"
+    "stock": 100,
+    "img": null
   },
   {
     "codigo": "F002",
     "nombre": "Banana de Ecuador",
+    "descripcion": "Bananas maduras, fuente natural de potasio y energía.",
     "categoria": "Frutas",
     "precio": 950,
-    "tamano": "1Kg",
-    "img": null
-  },
-  {
-    "codigo": "F003",
-    "nombre": "Naranja para jugo",
-    "categoria": "Frutas",
-    "precio": 800,
-    "tamano": "1Kg",
+    "stock": 80,
     "img": null
   },
   {
     "codigo": "L001",
     "nombre": "Leche entera",
+    "descripcion": "Leche de vaca fresca y pasteurizada, formato 1L.",
     "categoria": "Lácteos",
     "precio": 1200,
-    "tamano": "1L",
+    "stock": 25,
     "img": null
   },
   {
     "codigo": "H001",
     "nombre": "Huevos de campo",
+    "descripcion": "Docena de huevos de gallinas criadas en libertad.",
     "categoria": "Huevos",
     "precio": 2500,
-    "tamano": "1 docena",
+    "stock": 20,
     "img": null
+  },
+  {
+    "codigo": "C001",
+    "nombre": "Avena integral",
+    "descripcion": "Avena en hojuelas para un desayuno nutritivo y saludable.",
+    "categoria": "Cereales",
+    "precio": 1800,
+    "stock": 60,
+    "img": "file:///android_asset/img/Avena_integral.webp"
   }
 ]

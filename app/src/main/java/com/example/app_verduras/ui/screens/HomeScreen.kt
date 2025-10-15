@@ -1,4 +1,4 @@
-package com.example.app_verduras.ui.theme.screens
+package com.example.app_verduras.ui.screens
 
 
 import androidx.compose.foundation.layout.*
