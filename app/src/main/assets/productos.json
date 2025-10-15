@@ -24,7 +24,7 @@
     "categoria": "Verduras",
     "precio": 600,
     "stock": 30,
-    "img": null
+    "img": "file:///android_asset/img/lechuga-hidroponica.jpeg"
   },
   {
     "codigo": "F001",
@@ -33,7 +33,7 @@
     "categoria": "Frutas",
     "precio": 1200,
     "stock": 100,
-    "img": null
+    "img": "file:///android_asset/img/Manza_fuji.jpg"
   },
   {
     "codigo": "F002",
@@ -42,7 +42,7 @@
     "categoria": "Frutas",
     "precio": 950,
     "stock": 80,
-    "img": null
+    "img": "file:///android_asset/img/platano.webp"
   },
   {
     "codigo": "L001",
@@ -51,16 +51,16 @@
     "categoria": "Lácteos",
     "precio": 1200,
     "stock": 25,
-    "img": null
+    "img": "file:///android_asset/img/leche_entera.webp"
   },
   {
     "codigo": "H001",
-    "nombre": "Huevos de campo",
-    "descripcion": "Docena de huevos de gallinas criadas en libertad.",
-    "categoria": "Huevos",
+    "nombre": "Naranja",
+    "descripcion": "Naranjas Dulces.",
+    "categoria": "Frutas",
     "precio": 2500,
     "stock": 20,
-    "img": null
+    "img": "file:///android_asset/img/naranja.webp"
   },
   {
     "codigo": "C001",

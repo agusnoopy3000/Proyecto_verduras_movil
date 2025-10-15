@@ -39,6 +39,9 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector?
     object Catalog : Screen("catalog", "Catálogo", Icons.Default.List)
     object Cart : Screen("cart", "Carrito", Icons.Default.ShoppingCart)
     object Confirmation : Screen("confirmation", "Confirmación")
+    object AdminPanel : Screen("admin_panel", "Panel de Administrador")
+    object ProductManagement : Screen("product_management", "Gestionar Productos")
+    object UserManagement : Screen("user_management", "Gestionar Usuarios")
 }
 
 @Composable
@@ -102,6 +105,11 @@ fun HuertoHogarApp() {
                             popUpTo(Screen.Login.route) { inclusive = true }
                         }
                     },
+                    onAdminLoginSuccess = {
+                        navController.navigate(Screen.AdminPanel.route) {
+                            popUpTo(Screen.Login.route) { inclusive = true }
+                        }
+                    },
                     onNavigateToRegister = {
                         navController.navigate(Screen.Register.route)
                     }
@@ -151,6 +159,23 @@ fun HuertoHogarApp() {
                         }
                     }
                 )
+            }
+
+            composable(Screen.AdminPanel.route) {
+                AdminPanelScreen(
+                    onNavigateToProductManagement = { navController.navigate(Screen.ProductManagement.route) },
+                    onNavigateToUserManagement = { navController.navigate(Screen.UserManagement.route) }
+                )
+            }
+
+            composable(Screen.ProductManagement.route) {
+                // Placeholder - We'll create this screen next
+                Text("Product Management Screen")
+            }
+
+            composable(Screen.UserManagement.route) {
+                // Placeholder - We'll create this screen next
+                Text("User Management Screen")
             }
         }
     }

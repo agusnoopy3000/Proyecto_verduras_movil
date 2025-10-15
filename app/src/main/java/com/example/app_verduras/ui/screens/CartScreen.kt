@@ -47,7 +47,7 @@ fun CartScreen(viewModel: CartViewModel, onConfirmOrder: () -> Unit) {
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(item.product.nombre, fontWeight = FontWeight.SemiBold)
-                                Text("S/.${item.product.precio}")
+                                Text("$${item.product.precio} CLP")
                             }
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 IconButton(onClick = { viewModel.decrease(item.product.codigo) }) {
@@ -68,7 +68,7 @@ fun CartScreen(viewModel: CartViewModel, onConfirmOrder: () -> Unit) {
             // Resumen del total
             Column(horizontalAlignment = Alignment.End, modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    "Total: S/.${state.total}",
+                    "Total: $${state.total} CLP",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
