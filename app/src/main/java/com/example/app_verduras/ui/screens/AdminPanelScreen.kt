@@ -18,7 +18,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun AdminPanelScreen(
     onNavigateToProductManagement: () -> Unit,
-    onNavigateToUserManagement: () -> Unit
+    onNavigateToUserManagement: () -> Unit,
+    onNavigateToOrderManagement: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -44,6 +45,13 @@ fun AdminPanelScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Gestionar Usuarios")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            onClick = onNavigateToOrderManagement,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Gestionar Pedidos")
         }
     }
 }

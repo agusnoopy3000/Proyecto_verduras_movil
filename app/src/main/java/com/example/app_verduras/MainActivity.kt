@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -17,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.*
+import com.example.app_verduras.api.RetrofitClient
 import com.example.app_verduras.dal.AppDatabase
 import com.example.app_verduras.repository.ProductoRepository
 import com.example.app_verduras.ui.screens.*
@@ -35,6 +37,8 @@ class MainActivity : ComponentActivity() {
 sealed class Screen(val route: String, val label: String, val icon: ImageVector? = null) {
     object Login : Screen("login", "Login")
     object Register : Screen("register", "Registro")
+    object WelcomeUser : Screen("welcome_user", "Bienvenido") // Nueva ruta
+    object WelcomeAdmin : Screen("welcome_admin", "Bienvenido Admin") // Nueva ruta
     object Home : Screen("home", "Inicio", Icons.Default.Home)
     object Catalog : Screen("catalog", "Catálogo", Icons.Default.List)
     object Cart : Screen("cart", "Carrito", Icons.Default.ShoppingCart)
@@ -42,6 +46,7 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector?
     object AdminPanel : Screen("admin_panel", "Panel de Administrador")
     object ProductManagement : Screen("product_management", "Gestionar Productos")
     object UserManagement : Screen("user_management", "Gestionar Usuarios")
+    object OrderManagement : Screen("order_management", "Gestionar Pedidos")
 }
 
 @Composable
@@ -54,11 +59,19 @@ fun HuertoHogarApp() {
     val userDao = db.userDao()
     val productoDao = db.productoDao()
     val pedidoDao = db.pedidoDao()
-    val productoRepository = ProductoRepository(productoDao, context.assets)
+    val productoRepository = ProductoRepository(productoDao, context.assets, RetrofitClient.apiService)
 
     // --- ViewModels ---
     val cartViewModel: CartViewModel = viewModel(factory = CartViewModel.Factory(productoRepository, pedidoDao))
     val authViewModel: AuthViewModel = viewModel(factory = AuthViewModel.Factory(userDao))
+    // Se instancia el nuevo ViewModel para la inicialización de la BD.
+    val databaseViewModel: DatabaseViewModel = viewModel(factory = DatabaseViewModel.Factory(productoRepository))
+
+    // Este bloque se ejecuta una sola vez cuando el Composable entra en la composición.
+    // Es el lugar perfecto para operaciones de inicialización.
+    LaunchedEffect(Unit) {
+        databaseViewModel.initializeDatabase()
+    }
 
     // --- Lógica de la Bottom Bar ---
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -101,12 +114,14 @@ fun HuertoHogarApp() {
                 LoginScreen(
                     authViewModel = authViewModel,
                     onLoginSuccess = {
-                        navController.navigate(Screen.Home.route) {
+                        // Navega a la pantalla de bienvenida del usuario
+                        navController.navigate(Screen.WelcomeUser.route) {
                             popUpTo(Screen.Login.route) { inclusive = true }
                         }
                     },
                     onAdminLoginSuccess = {
-                        navController.navigate(Screen.AdminPanel.route) {
+                        // Navega a la pantalla de bienvenida del admin
+                        navController.navigate(Screen.WelcomeAdmin.route) {
                             popUpTo(Screen.Login.route) { inclusive = true }
                         }
                     },
@@ -120,12 +135,37 @@ fun HuertoHogarApp() {
                 RegisterScreen(
                     authViewModel = authViewModel,
                     onRegisterSuccess = {
-                        navController.navigate(Screen.Home.route) {
+                        // Navega a la pantalla de bienvenida del usuario tras el registro
+                        navController.navigate(Screen.WelcomeUser.route) {
                             popUpTo(Screen.Login.route) { inclusive = true }
                         }
                     },
                     onNavigateToLogin = {
                         navController.popBackStack()
+                    }
+                )
+            }
+
+            // Pantalla de bienvenida para el usuario normal
+            composable(Screen.WelcomeUser.route) {
+                WelcomeUserScreen(
+                    onTimeout = {
+                        navController.navigate(Screen.Home.route) {
+                            // Limpia la pantalla de bienvenida del backstack
+                            popUpTo(Screen.WelcomeUser.route) { inclusive = true }
+                        }
+                    }
+                )
+            }
+
+            // Pantalla de bienvenida para el administrador
+            composable(Screen.WelcomeAdmin.route) {
+                WelcomeAdminScreen(
+                    onTimeout = {
+                        navController.navigate(Screen.AdminPanel.route) {
+                            // Limpia la pantalla de bienvenida del backstack
+                            popUpTo(Screen.WelcomeAdmin.route) { inclusive = true }
+                        }
                     }
                 )
             }
@@ -164,18 +204,30 @@ fun HuertoHogarApp() {
             composable(Screen.AdminPanel.route) {
                 AdminPanelScreen(
                     onNavigateToProductManagement = { navController.navigate(Screen.ProductManagement.route) },
-                    onNavigateToUserManagement = { navController.navigate(Screen.UserManagement.route) }
+                    onNavigateToUserManagement = { navController.navigate(Screen.UserManagement.route) },
+                    onNavigateToOrderManagement = { navController.navigate(Screen.OrderManagement.route) }
                 )
             }
 
             composable(Screen.ProductManagement.route) {
-                // Placeholder - We'll create this screen next
-                Text("Product Management Screen")
+                // Instanciamos el ViewModel para la gestión de productos
+                val productManagementVM: ProductManagementViewModel = viewModel(factory = ProductManagementViewModel.Factory(productoRepository))
+                ProductManagementScreen(
+                    viewModel = productManagementVM, // Se lo pasamos a la pantalla
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
 
             composable(Screen.UserManagement.route) {
-                // Placeholder - We'll create this screen next
-                Text("User Management Screen")
+                UserManagementScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.OrderManagement.route) {
+                OrderManagementScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
         }
     }

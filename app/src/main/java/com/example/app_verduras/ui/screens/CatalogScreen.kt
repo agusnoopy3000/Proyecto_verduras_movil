@@ -32,7 +32,8 @@ fun CatalogScreen(viewModel: CatalogViewModel, cartViewModel: CartViewModel) {
     val state by viewModel.uiState.collectAsState()
     val cartState by cartViewModel.cartState.collectAsState()
 
-    val cartItemsMap = cartState.items.associateBy { it.product.codigo }
+    // CORRECCIÓN: Usar '''id''' en lugar de '''codigo''' para crear el mapa.
+    val cartItemsMap = cartState.items.associateBy { it.product.id }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
@@ -58,7 +59,9 @@ fun CatalogScreen(viewModel: CatalogViewModel, cartViewModel: CartViewModel) {
                                 badge = {
                                     if (cartState.items.isNotEmpty()) {
                                         Badge {
-                                            Text("${cartState.items.size}")
+                                            // MEJORA: Mostrar la cantidad total de ítems en lugar de solo los productos únicos.
+                                            val totalItems = cartState.items.sumOf { it.qty }
+                                            Text("$totalItems")
                                         }
                                     }
                                 }
@@ -120,12 +123,13 @@ fun CatalogScreen(viewModel: CatalogViewModel, cartViewModel: CartViewModel) {
                     modifier = Modifier.fillMaxSize()
                 ) {
                     items(state.filteredProducts) { p ->
+                        // CORRECCIÓN: Pasar '''id''' en lugar de '''codigo''' a los métodos del ViewModel.
                         ProductCard(
                             product = p,
-                            cartItem = cartItemsMap[p.codigo],
-                            onAdd = { cartViewModel.addToCart(p.codigo) },
-                            onIncrease = { cartViewModel.increase(p.codigo) },
-                            onDecrease = { cartViewModel.decrease(p.codigo) }
+                            cartItem = cartItemsMap[p.id],
+                            onAdd = { cartViewModel.addToCart(p.id) },
+                            onIncrease = { cartViewModel.increase(p.id) },
+                            onDecrease = { cartViewModel.decrease(p.id) }
                         )
                     }
                 }
@@ -205,7 +209,8 @@ fun ProductCard(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AsyncImage(
-                model = product.img ?: "file:///android_asset/img/default.png",
+                // CORRECCIÓN: Usar '''imagen''' en lugar de '''img''' y proporcionar un valor por defecto.
+                model = product.imagen ?: "file:///android_asset/img/default.png",
                 contentDescription = product.nombre,
                 modifier = Modifier.size(80.dp)
             )
@@ -223,7 +228,8 @@ fun ProductCard(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = product.descripcion,
+                // CORRECCIÓN: Manejar el caso en que la descripción sea nula.
+                text = product.descripcion ?: "",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.secondary,
                 maxLines = 3, // Allow a bit more text

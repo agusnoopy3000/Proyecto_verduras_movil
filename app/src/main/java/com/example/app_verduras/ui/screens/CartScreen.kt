@@ -50,11 +50,11 @@ fun CartScreen(viewModel: CartViewModel, onConfirmOrder: () -> Unit) {
                                 Text("$${item.product.precio} CLP")
                             }
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                IconButton(onClick = { viewModel.decrease(item.product.codigo) }) {
+                                IconButton(onClick = { viewModel.decrease(item.product.id) }) {
                                     Text("-", style = MaterialTheme.typography.titleLarge)
                                 }
                                 Text("${item.qty}", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(horizontal = 8.dp))
-                                IconButton(onClick = { viewModel.increase(item.product.codigo) }) {
+                                IconButton(onClick = { viewModel.increase(item.product.id) }) {
                                     Text("+", style = MaterialTheme.typography.titleLarge)
                                 }
                             }
