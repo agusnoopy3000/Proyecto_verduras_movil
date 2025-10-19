@@ -1,11 +1,11 @@
 package com.example.app_verduras.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -25,6 +25,8 @@ fun RegisterScreen(
     var apellido by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var direccion by remember { mutableStateOf("") }
+    var telefono by remember { mutableStateOf("") }
     var showError by remember { mutableStateOf(false) }
 
     // Resetea el estado si el usuario llega a esta pantalla
@@ -43,7 +45,8 @@ fun RegisterScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 32.dp),
+            .padding(horizontal = 32.dp)
+            .verticalScroll(rememberScrollState()), // Para permitir el scroll si los campos no caben
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -79,6 +82,25 @@ fun RegisterScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
+            value = direccion,
+            onValueChange = { direccion = it },
+            label = { Text("Dirección") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = telefono,
+            onValueChange = { telefono = it },
+            label = { Text("Teléfono") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
             value = password,
             onValueChange = { password = it },
             label = { Text("Contraseña") },
@@ -101,7 +123,7 @@ fun RegisterScreen(
         Button(
             onClick = {
                 showError = false
-                authViewModel.register(nombre, apellido, email, password)
+                authViewModel.register(nombre, apellido, email, password, direccion, telefono)
             },
             modifier = Modifier.fillMaxWidth(),
             enabled = uiState !is AuthState.Loading

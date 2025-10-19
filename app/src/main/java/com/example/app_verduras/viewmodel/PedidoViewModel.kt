@@ -1,6 +1,7 @@
 package com.example.app_verduras.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.app_verduras.Model.Pedido
 import com.example.app_verduras.repository.PedidoRepository
@@ -19,12 +20,11 @@ class PedidoViewModel(private val repository: PedidoRepository) : ViewModel() {
     private val _uiState = MutableStateFlow(PedidoUiState())
     val uiState = _uiState.asStateFlow()
 
-    // Crear un nuevo pedido
     fun crearPedido(pedido: Pedido) {
         viewModelScope.launch {
             try {
                 _uiState.value = _uiState.value.copy(cargando = true)
-                repository.insertarPedido(pedido)
+                repository.insert(pedido) // Corregido
                 _uiState.value = _uiState.value.copy(mensaje = "Pedido registrado con éxito ✅")
                 obtenerPedidosUsuario(pedido.userEmail)
             } catch (e: Exception) {
@@ -35,33 +35,54 @@ class PedidoViewModel(private val repository: PedidoRepository) : ViewModel() {
         }
     }
 
-    // Cargar pedidos por usuario
     fun obtenerPedidosUsuario(email: String) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(cargando = true)
-            val lista = repository.obtenerPedidosUsuario(email)
-            _uiState.value = _uiState.value.copy(pedidos = lista, cargando = false)
+            try {
+                val lista = repository.getPedidosByUserEmail(email) // Corregido
+                _uiState.value = _uiState.value.copy(pedidos = lista)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(mensaje = "Error al obtener pedidos: ${e.message}")
+            } finally {
+                _uiState.value = _uiState.value.copy(cargando = false)
+            }
         }
     }
 
-    // Actualizar estado
     fun actualizarEstado(id: Int, nuevoEstado: String) {
         viewModelScope.launch {
-            repository.actualizarEstado(id, nuevoEstado)
-            _uiState.value = _uiState.value.copy(mensaje = "Estado actualizado a '$nuevoEstado'")
+            try {
+                repository.updatePedidoStatus(id, nuevoEstado) // Corregido
+                _uiState.value = _uiState.value.copy(mensaje = "Estado actualizado a '$nuevoEstado'")
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(mensaje = "Error al actualizar estado: ${e.message}")
+            }
         }
     }
 
-    // Eliminar pedido
     fun eliminarPedido(pedido: Pedido) {
         viewModelScope.launch {
-            repository.eliminarPedido(pedido)
-            obtenerPedidosUsuario(pedido.userEmail)
+            try {
+                repository.delete(pedido) // Corregido
+                obtenerPedidosUsuario(pedido.userEmail)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(mensaje = "Error al eliminar el pedido: ${e.message}")
+            }
         }
     }
 
-    // Limpiar mensajes temporales
     fun limpiarMensaje() {
         _uiState.value = _uiState.value.copy(mensaje = null)
+    }
+}
+
+// Factory para poder instanciar el ViewModel con parámetros
+class PedidoViewModelFactory(private val repository: PedidoRepository) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(PedidoViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return PedidoViewModel(repository) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

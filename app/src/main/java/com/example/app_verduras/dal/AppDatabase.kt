@@ -4,14 +4,14 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.app_verduras.Model.Documento
 import com.example.app_verduras.Model.Pedido
 import com.example.app_verduras.Model.Producto
 import com.example.app_verduras.Model.User
 
 @Database(
-    entities = [User::class, Pedido::class, Producto::class],
-    // Se incrementa la versión por el cambio en la entidad Producto
-    version = 4,
+    entities = [User::class, Pedido::class, Producto::class, Documento::class],
+    version = 5, // Incrementamos la versión por añadir la tabla Documento
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -19,6 +19,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun pedidoDao(): PedidoDao
     abstract fun productoDao(): ProductoDao
+    abstract fun documentoDao(): DocumentoDao // Añadimos el DAO para Documento
 
     companion object {
         @Volatile
@@ -31,6 +32,8 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "huertohogar_db"
                 )
+                    // Ojo: fallbackToDestructiveMigration borra los datos si la migración no se provee.
+                    // Para producción, se necesitaría una estrategia de migración real.
                     .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance

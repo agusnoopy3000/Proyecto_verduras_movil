@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.example.app_verduras.Model.Producto
 import kotlinx.coroutines.flow.Flow
 
@@ -35,4 +36,7 @@ interface ProductoDao {
 
     @Query("DELETE FROM productos")
     suspend fun clearAll()
+
+    @Update
+    suspend fun update(product: Producto)
 }

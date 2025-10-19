@@ -7,32 +7,30 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.example.app_verduras.Model.Pedido
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface PedidoDao {
 
-    // --- CREATE ---
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(pedido: Pedido)
 
-    // --- READ ---
     @Query("SELECT * FROM pedidos WHERE id = :pedidoId")
     suspend fun getPedidoById(pedidoId: Int): Pedido?
 
     @Query("SELECT * FROM pedidos WHERE userEmail = :userEmail ORDER BY fechaEntrega DESC")
-    suspend fun getPedidosByUser(userEmail: String): List<Pedido>
+    suspend fun getPedidosByUserEmail(userEmail: String): List<Pedido>
 
+    // Función que devuelve un Flow para observar cambios en tiempo real.
     @Query("SELECT * FROM pedidos ORDER BY fechaEntrega DESC")
-    suspend fun getAllPedidos(): List<Pedido>
+    fun obtenerTodosLosPedidosFlow(): Flow<List<Pedido>>
 
-    // --- UPDATE ---
     @Update
     suspend fun update(pedido: Pedido)
 
     @Query("UPDATE pedidos SET estado = :nuevoEstado WHERE id = :pedidoId")
-    suspend fun updateEstado(pedidoId: Int, nuevoEstado: String)
+    suspend fun updatePedidoStatus(pedidoId: Int, nuevoEstado: String)
 
-    // --- DELETE ---
     @Delete
     suspend fun delete(pedido: Pedido)
 }

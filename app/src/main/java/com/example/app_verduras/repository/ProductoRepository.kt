@@ -1,10 +1,10 @@
 package com.example.app_verduras.repository
 
 import android.content.res.AssetManager
+import com.example.app_verduras.Model.Producto
 import com.example.app_verduras.api.ApiService
 import com.example.app_verduras.api.NetworkProducto
 import com.example.app_verduras.dal.ProductoDao
-import com.example.app_verduras.Model.Producto
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
@@ -20,7 +20,6 @@ class ProductoRepository(
 
     // Clase temporal que representa la estructura del JSON local
     private data class LocalJsonProducto(
-        val id: Int,
         val codigo: String,
         val nombre: String,
         val descripcion: String,
@@ -30,10 +29,15 @@ class ProductoRepository(
         val img: String?
     )
 
-    val allProducts: Flow<List<Producto>> = productoDao.getAllProductsFlow()
+    fun getAll(): Flow<List<Producto>> = productoDao.getAllProductsFlow()
 
     suspend fun getById(id: String): Producto? {
         return productoDao.getProductById(id)
+    }
+
+    // Función para actualizar un producto
+    suspend fun update(product: Producto) {
+        productoDao.update(product)
     }
 
     // Esta función ahora es suspend y tiene un nombre más claro.
@@ -47,10 +51,12 @@ class ProductoRepository(
 
                 val productosToInsert = localJsonProductos.map {
                     Producto(
-                        id = "local-${it.id}", // Se crea un ID de tipo String único para los datos locales
+                        // Se corrige para usar el "codigo" del JSON, que es único,
+                        // para generar el id de la base de datos.
+                        id = "local-${it.codigo}",
                         nombre = it.nombre,
                         precio = it.precio,
-                        imagen = it.img ?: "", // Se usa el campo img del JSON
+                        imagen = it.img ?: "",
                         categoria = it.categoria,
                         descripcion = it.descripcion,
                         stock = it.stock,
@@ -82,6 +88,7 @@ class ProductoRepository(
 
 /**
  * Función de extensión para convertir un producto de red a un producto de la base de datos local.
+ * Corregido para proveer valores por defecto para los campos que no vienen de la red.
  */
 fun NetworkProducto.toLocalProducto(): Producto {
     return Producto(
@@ -89,8 +96,10 @@ fun NetworkProducto.toLocalProducto(): Producto {
         nombre = this.nombre,
         precio = this.precio,
         imagen = this.imagen,
-        categoria = this.categoria
-        // Los campos como 'descripcion' o 'stock' no vienen de la red,
-        // por lo que se quedan con su valor por defecto (null o 0).
+        categoria = this.categoria,
+        // Se añaden valores por defecto para los campos que no vienen de la red.
+        descripcion = "",
+        stock = 0,
+        codigo = ""
     )
 }

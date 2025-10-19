@@ -5,42 +5,46 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.app_verduras.Model.Producto
 import com.example.app_verduras.repository.ProductoRepository
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class ProductManagementViewModel(private val repository: ProductoRepository) : ViewModel() {
+class ProductManagementViewModel(private val productoRepository: ProductoRepository) : ViewModel() {
 
-    // Este bloque se ejecuta una sola vez cuando el ViewModel es creado.
+    private val _products = MutableStateFlow<List<Producto>>(emptyList())
+    val products: StateFlow<List<Producto>> = _products.asStateFlow()
+
     init {
-        // Lanzamos una corutina en el scope del ViewModel para hacer la llamada de red.
         viewModelScope.launch {
-            // Le pedimos al repositorio que actualice los productos desde la red.
-            repository.refreshProductsFromNetwork()
+            // Se suscribe al Flow del repositorio para obtener actualizaciones automáticas
+            productoRepository.getAll().collect { productList ->
+                _products.value = productList
+            }
         }
     }
 
-    // La vista sigue observando el flujo de productos de la base de datos local.
-    // La magia es que este flujo se actualizará automáticamente cuando refreshProductsFromNetwork() inserte los nuevos datos.
-    val products: StateFlow<List<Producto>> = repository.allProducts
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    /**
+     * Lanza una corrutina para actualizar un producto en la base de datos
+     * a través del repositorio.
+     */
+    fun updateProduct(product: Producto) {
+        viewModelScope.launch {
+            // Esta función la crearemos en el repositorio en el siguiente paso
+            productoRepository.update(product)
+        }
+    }
 
-    companion object {
-        fun Factory(repository: ProductoRepository): ViewModelProvider.Factory {
-            return object : ViewModelProvider.Factory {
+    /**
+     * Factory para crear una instancia de ProductManagementViewModel con un ProductoRepository.
+     */
+    class Factory(private val repository: ProductoRepository) : ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(ProductManagementViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    if (modelClass.isAssignableFrom(ProductManagementViewModel::class.java)) {
-                        return ProductManagementViewModel(repository) as T
-                    }
-                    throw IllegalArgumentException("Unknown ViewModel class")
-                }
+                return ProductManagementViewModel(repository) as T
             }
+            throw IllegalArgumentException("Unknown ViewModel class")
         }
     }
 }
