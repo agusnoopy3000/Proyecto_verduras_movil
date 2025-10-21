@@ -4,8 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -18,7 +16,8 @@ import com.example.app_verduras.viewmodel.AuthState
 fun LoginScreen(
     authViewModel: AuthViewModel,
     onLoginSuccess: () -> Unit,
-    onNavigateToRegister: () -> Unit // Parámetro añadido
+    onAdminLoginSuccess: () -> Unit, // Parámetro para el admin
+    onNavigateToRegister: () -> Unit
 ) {
     val uiState by authViewModel.uiState.collectAsState()
     var email by remember { mutableStateOf("") }
@@ -76,7 +75,13 @@ fun LoginScreen(
         Button(
             onClick = {
                 showError = false
-                authViewModel.login(email, password)
+                // Lógica de admin aquí
+                if (email.trim() == "admin@test.com" && password == "admin") {
+                    onAdminLoginSuccess()
+                } else {
+                    // Lógica de usuario normal
+                    authViewModel.login(email, password)
+                }
             },
             modifier = Modifier.fillMaxWidth(),
             enabled = uiState !is AuthState.Loading
@@ -89,7 +94,7 @@ fun LoginScreen(
         }
         Spacer(modifier = Modifier.height(16.dp))
 
-        TextButton(onClick = onNavigateToRegister) { // Parámetro conectado
+        TextButton(onClick = onNavigateToRegister) {
             Text("¿No tienes cuenta? Regístrate")
         }
     }

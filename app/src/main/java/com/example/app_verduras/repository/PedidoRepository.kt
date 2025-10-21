@@ -1,33 +1,36 @@
 package com.example.app_verduras.repository
 
-import com.example.app_verduras.Model.Pedido
 import com.example.app_verduras.dal.PedidoDao
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.example.app_verduras.Model.Pedido
+import kotlinx.coroutines.flow.Flow
 
 class PedidoRepository(private val pedidoDao: PedidoDao) {
 
-    // Crear un nuevo pedido
-    suspend fun insertarPedido(pedido: Pedido) = withContext(Dispatchers.IO) {
+    // Flujo de datos para observar todos los pedidos (usado por el Admin).
+    val todosLosPedidos: Flow<List<Pedido>> = pedidoDao.obtenerTodosLosPedidosFlow()
+
+    // Obtener los pedidos para un usuario específico (usado por el cliente).
+    suspend fun getPedidosByUserEmail(email: String): List<Pedido> {
+        return pedidoDao.getPedidosByUserEmail(email)
+    }
+
+    // Insertar un nuevo pedido.
+    suspend fun insert(pedido: Pedido) {
         pedidoDao.insert(pedido)
     }
 
-    // Obtener todos los pedidos (por usuario o todos)
-    suspend fun obtenerPedidosUsuario(email: String): List<Pedido> = withContext(Dispatchers.IO) {
-        pedidoDao.getPedidosByUser(email)
+    // Actualizar un pedido completo.
+    suspend fun update(pedido: Pedido) {
+        pedidoDao.update(pedido)
     }
 
-    suspend fun obtenerTodosPedidos(): List<Pedido> = withContext(Dispatchers.IO) {
-        pedidoDao.getAllPedidos()
+    // Actualizar solo el estado de un pedido (usado por el Admin).
+    suspend fun updatePedidoStatus(id: Int, nuevoEstado: String) {
+        pedidoDao.updatePedidoStatus(id, nuevoEstado)
     }
 
-    // Actualizar estado (Ej: “En preparación” → “Enviado”)
-    suspend fun actualizarEstado(id: Int, estado: String) = withContext(Dispatchers.IO) {
-        pedidoDao.updateEstado(id, estado)
-    }
-
-    // Eliminar pedido
-    suspend fun eliminarPedido(pedido: Pedido) = withContext(Dispatchers.IO) {
+    // Eliminar un pedido.
+    suspend fun delete(pedido: Pedido) {
         pedidoDao.delete(pedido)
     }
 }

@@ -15,7 +15,7 @@ class HomeViewModel(private val productoRepository: ProductoRepository) : ViewMo
     val categories = _categories.asStateFlow()
 
     init {
-        productoRepository.allProducts
+        productoRepository.getAll()
             .onEach { products ->
                 _categories.value = products.map { it.categoria }.distinct().sorted()
             }

@@ -46,31 +46,65 @@ class AuthViewModel(private val userDao: UserDao) : ViewModel() {
         }
     }
 
-    // 4. SE SIMPLIFICA LA FUNCIÓN DE REGISTRO
-    fun register(nombre: String, apellido: String, email: String, password: String) {
+    // 4. SE MODIFICA LA FUNCIÓN DE REGISTRO PARA ACEPTAR MÁS CAMPOS
+    fun register(nombre: String, apellido: String, email: String, password: String, direccion: String, telefono: String) {
         viewModelScope.launch {
             _uiState.value = AuthState.Loading
 
-            // Validaciones básicas
-            if (nombre.isBlank() || apellido.isBlank() || email.isBlank() || password.isBlank()) {
+            // --- INICIO DE VALIDACIONES ---
+
+            // Validación de campos obligatorios
+            if (nombre.isBlank() || apellido.isBlank() || email.isBlank() || password.isBlank() || direccion.isBlank() || telefono.isBlank()) {
                 _uiState.value = AuthState.Error("Todos los campos son obligatorios.")
                 return@launch
             }
+
+            // Validación de dominio de correo
+            if (!email.endsWith("@gmail.com") && !email.endsWith("@duocuc.cl")) {
+                _uiState.value = AuthState.Error("El correo debe ser @gmail.com o @duocuc.cl.")
+                return@launch
+            }
+
+            // Validación de contraseña
+            val specialCharRegex = Regex("[^A-Za-z0-9]")
+            if (password.length < 6 || !specialCharRegex.containsMatchIn(password)) {
+                _uiState.value = AuthState.Error("La contraseña debe tener mínimo 6 caracteres y un carácter especial.")
+                return@launch
+            }
+
+            // Validación de teléfono
+            if (!telefono.all { it.isDigit() }) {
+                _uiState.value = AuthState.Error("El teléfono solo puede contener números.")
+                return@launch
+            }
+
+            // Validación de email existente
             val existingUser = withContext(Dispatchers.IO) { userDao.getUserByEmail(email) }
             if (existingUser != null) {
                 _uiState.value = AuthState.Error("El email ya está registrado.")
                 return@launch
             }
 
+            // --- FIN DE VALIDACIONES ---
+
             val newUser = User(
                 email = email,
                 nombre = nombre,
                 apellido = apellido,
-                password = password
+                password = password, // En una app real, la contraseña debería ser hasheada aquí
+                direccion = direccion,
+                telefono = telefono
             )
             userDao.insert(newUser)
             SessionManager.login(newUser)
             _uiState.value = AuthState.Authenticated
+        }
+    }
+
+    fun logout() {
+        viewModelScope.launch {
+            SessionManager.logout()
+            _uiState.value = AuthState.Idle
         }
     }
 

@@ -33,13 +33,13 @@ class CartViewModel(
     private val _cartState = MutableStateFlow(CartState())
     val cartState = _cartState.asStateFlow()
 
-    // Lógica para agregar, incrementar y disminuir (sin cambios)
-    fun addToCart(productCode: String) {
+    fun addToCart(productId: String) {
         viewModelScope.launch {
-            val product = productoRepository.getByCodigo(productCode)
+            // Asumimos que el repositorio tiene un método para buscar por el ID de String
+            val product = productoRepository.getById(productId)
             product?.let { foundProduct ->
                 val currentItems = _cartState.value.items.toMutableList()
-                val index = currentItems.indexOfFirst { it.product.codigo == productCode }
+                val index = currentItems.indexOfFirst { it.product.id == productId }
                 if (index >= 0) {
                     val updatedItem = currentItems[index].copy(qty = currentItems[index].qty + 1)
                     currentItems[index] = updatedItem
@@ -51,12 +51,12 @@ class CartViewModel(
         }
     }
 
-    fun increase(productCode: String) = modifyQty(productCode, +1)
-    fun decrease(productCode: String) = modifyQty(productCode, -1)
+    fun increase(productId: String) = modifyQty(productId, +1)
+    fun decrease(productId: String) = modifyQty(productId, -1)
 
-    private fun modifyQty(code: String, delta: Int) {
+    private fun modifyQty(id: String, delta: Int) {
         val current = _cartState.value.items.toMutableList()
-        val index = current.indexOfFirst { it.product.codigo == code }
+        val index = current.indexOfFirst { it.product.id == id }
         if (index >= 0) {
             val item = current[index]
             val newQty = (item.qty + delta).coerceAtLeast(0)
@@ -69,7 +69,7 @@ class CartViewModel(
         }
     }
 
-    // ✅ Confirmar pedido (Refactorizado)
+    // ✅ Confirmar pedido (Sin cambios, ya estaba correcto)
     fun confirmOrder(onSuccess: () -> Unit) {
         val currentUser = SessionManager.currentUser
         if (currentUser == null) {

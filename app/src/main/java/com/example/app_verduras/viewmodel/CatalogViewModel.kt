@@ -25,7 +25,7 @@ class CatalogViewModel(private val repository: ProductoRepository) : ViewModel()
 
     // El estado ahora combina 3 flujos: productos del repo, búsqueda y categoría.
     val uiState: StateFlow<CatalogState> = combine(
-        repository.allProducts, // Escucha el Flow de productos desde la base de datos
+        repository.getAll(), // Escucha el Flow de productos desde la base de datos
         _search,
         _selectedCategory
     ) { products, searchQuery, category ->
