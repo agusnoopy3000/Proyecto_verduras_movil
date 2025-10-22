@@ -69,7 +69,7 @@ class CartViewModel(
         }
     }
 
-    // ✅ Confirmar pedido (Sin cambios, ya estaba correcto)
+    // Confirmar pedido (Sin cambios, ya estaba correcto)
     fun confirmOrder(onSuccess: () -> Unit) {
         val currentUser = SessionManager.currentUser
         if (currentUser == null) {
@@ -102,7 +102,7 @@ class CartViewModel(
         }
     }
 
-    // --- Factory para crear el ViewModel con dependencias ---
+    // Factory para crear el ViewModel con dependencias ---
     class Factory(
         private val productoRepository: ProductoRepository,
         private val pedidoDao: PedidoDao // Se añade el DAO de Pedidos a la Factory

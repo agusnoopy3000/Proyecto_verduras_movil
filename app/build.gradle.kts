@@ -63,6 +63,12 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
 
+    // Splash Screen API
+    implementation("androidx.core:core-splashscreen:1.0.1")
+
+    // Google Play Services for location
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+
     // Coil para cargar imágenes
     implementation("io.coil-kt:coil-compose:2.6.0")
 
