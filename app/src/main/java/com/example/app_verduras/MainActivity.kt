@@ -211,7 +211,8 @@ fun HuertoHogarApp() {
                         navController.navigate(Screen.Confirmation.route) {
                             popUpTo(Screen.Home.route)
                         }
-                    }
+                    },
+                    onGoToCatalog = { navController.navigate(Screen.Catalog.route) } // <-- AÑADIDO
                 )
             }
 
