@@ -14,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.*
@@ -29,6 +30,7 @@ import com.example.app_verduras.viewmodel.*
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        installSplashScreen()
         setContent {
             HuertoHogarApp()
         }
@@ -74,6 +76,7 @@ fun HuertoHogarApp() {
     val cartViewModel: CartViewModel = viewModel(factory = CartViewModel.Factory(productoRepository, pedidoDao))
     val authViewModel: AuthViewModel = viewModel(factory = AuthViewModel.Factory(userDao))
     val databaseViewModel: DatabaseViewModel = viewModel(factory = DatabaseViewModel.Factory(productoRepository))
+    val locationViewModel: LocationViewModel = viewModel()
 
     LaunchedEffect(Unit) {
         databaseViewModel.initializeDatabase()
@@ -206,13 +209,14 @@ fun HuertoHogarApp() {
 
             composable(Screen.Cart.route) {
                 CartScreen(
-                    viewModel = cartViewModel,
+                    cartViewModel = cartViewModel,
+                    locationViewModel = locationViewModel,
                     onConfirmOrder = {
                         navController.navigate(Screen.Confirmation.route) {
                             popUpTo(Screen.Home.route)
                         }
                     },
-                    onGoToCatalog = { navController.navigate(Screen.Catalog.route) } // <-- AÑADIDO
+                    onGoToCatalog = { navController.navigate(Screen.Catalog.route) }
                 )
             }
 
