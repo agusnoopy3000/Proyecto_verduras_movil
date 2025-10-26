@@ -15,9 +15,9 @@ import java.io.InputStream
 class S3Uploader(private val context: Context) {
 
     // --- ¡DATOS CASI COMPLETOS! ---
-    private val bucketName = "admin-app-movil" // ¡CORRECTO!
+    private val bucketName = "admin-app-movil" // Nombre del bucket
     private val identityPoolId = "us-east-1:a344bf4a-b300-4536-bea8-3bb3802f5997" // Pega aquí el ID que copiaste de AWS
-    private val region = Regions.US_EAST_1 // Ya está correcto
+    private val region = Regions.US_EAST_1 
 
     private val s3Client: AmazonS3Client by lazy {
         val credentialsProvider = CognitoCachingCredentialsProvider(
