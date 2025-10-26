@@ -27,7 +27,7 @@ class OrderManagementViewModel(private val repository: PedidoRepository) : ViewM
     fun actualizarPedido(pedido: Pedido) {
         viewModelScope.launch {
             repository.update(pedido)
-            _eventChannel.send(UiEvent.ShowSnackbar("Cambios guardados correctamente"))
+            _eventChannel.send(UiEvent.ShowSnackbar("Save Changes"))
             _eventChannel.send(UiEvent.DismissEditModal) // Send event to dismiss modal
         }
     }

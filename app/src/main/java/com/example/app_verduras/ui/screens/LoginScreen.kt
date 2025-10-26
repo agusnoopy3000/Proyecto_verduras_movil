@@ -9,6 +9,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.airbnb.lottie.compose.*
+import com.example.app_verduras.R
+import com.example.app_verduras.ui.components.AppFooter
 import com.example.app_verduras.viewmodel.AuthViewModel
 import com.example.app_verduras.viewmodel.AuthState
 
@@ -24,6 +27,9 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     var showError by remember { mutableStateOf(false) }
 
+    // Lottie Compositions
+    val loginComposition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.login_interactive))
+
     LaunchedEffect(uiState) {
         if (uiState is AuthState.Authenticated) {
             onLoginSuccess()
@@ -37,8 +43,22 @@ fun LoginScreen(
             .fillMaxSize()
             .padding(horizontal = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
     ) {
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        // --- Animación Superior ---
+        LottieAnimation(
+            composition = loginComposition,
+            iterations = LottieConstants.IterateForever,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // --- Formulario de Inicio de Sesión ---
         Text("Iniciar Sesión", style = MaterialTheme.typography.headlineLarge)
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -75,11 +95,9 @@ fun LoginScreen(
         Button(
             onClick = {
                 showError = false
-                // Lógica de admin aquí
                 if (email.trim() == "admin@test.com" && password == "admin") {
                     onAdminLoginSuccess()
                 } else {
-                    // Lógica de usuario normal
                     authViewModel.login(email, password)
                 }
             },
@@ -97,5 +115,12 @@ fun LoginScreen(
         TextButton(onClick = onNavigateToRegister) {
             Text("¿No tienes cuenta? Regístrate")
         }
+        // --- Fin del Formulario ---
+
+        Spacer(modifier = Modifier.weight(1.5f))
+
+        // --- Animación Inferior (Footer) ---
+        AppFooter()
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }

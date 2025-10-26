@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.app_verduras.ui.components.AppFooter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,41 +31,46 @@ fun AdminPanelScreen(
             )
         }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Button(
-                onClick = onNavigateToProductManagement,
-                modifier = Modifier.fillMaxWidth()
+        Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Text("Gestionar Productos")
+                Button(
+                    onClick = onNavigateToProductManagement,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Gestionar Productos")
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = onNavigateToUserManagement,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Gestionar Usuarios")
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = onNavigateToOrderManagement,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Gestionar Pedidos")
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = onNavigateToDocumentManagement, // Añadido
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Gestionar Documentos")
+                }
             }
+
+            // --- Footer ---
+            AppFooter()
             Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = onNavigateToUserManagement,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Gestionar Usuarios")
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = onNavigateToOrderManagement,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Gestionar Pedidos")
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = onNavigateToDocumentManagement, // Añadido
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Gestionar Documentos")
-            }
         }
     }
 }
