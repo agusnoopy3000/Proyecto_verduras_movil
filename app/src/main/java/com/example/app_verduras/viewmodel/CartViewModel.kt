@@ -9,11 +9,10 @@ import com.example.app_verduras.Model.Producto
 import com.example.app_verduras.dal.PedidoDao
 import com.example.app_verduras.repository.ProductoRepository
 import com.example.app_verduras.util.SessionManager
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -27,15 +26,21 @@ data class CartState(val items: List<CartItem> = emptyList()) {
 // --- ViewModel principal del carrito ---
 class CartViewModel(
     private val productoRepository: ProductoRepository,
-    private val pedidoDao: PedidoDao // Se inyecta el DAO de Pedidos
+    private val pedidoDao: PedidoDao
 ) : ViewModel() {
 
     private val _cartState = MutableStateFlow(CartState())
     val cartState = _cartState.asStateFlow()
 
+    // --- Estados para controlar las animaciones ---
+    private val _isProcessingOrder = MutableStateFlow(false)
+    val isProcessingOrder = _isProcessingOrder.asStateFlow()
+
+    private val _showCheckoutAnimation = MutableStateFlow(false)
+    val showCheckoutAnimation = _showCheckoutAnimation.asStateFlow()
+
     fun addToCart(productId: String) {
         viewModelScope.launch {
-            // Asumimos que el repositorio tiene un método para buscar por el ID de String
             val product = productoRepository.getById(productId)
             product?.let { foundProduct ->
                 val currentItems = _cartState.value.items.toMutableList()
@@ -69,26 +74,28 @@ class CartViewModel(
         }
     }
 
-    // ✅ Confirmar pedido (Sin cambios, ya estaba correcto)
-    fun confirmOrder(onSuccess: () -> Unit) {
-        val currentUser = SessionManager.currentUser
-        if (currentUser == null) {
-            Log.e("CartViewModel", "Error: No hay un usuario logueado para confirmar el pedido.")
-            return
-        }
-
-        val currentState = _cartState.value
-        if (currentState.items.isEmpty()) {
-            Log.w("CartViewModel", "Intento de confirmar un pedido con el carrito vacío.")
-            return
+    fun confirmOrder() {
+        if (isProcessingOrder.value || cartState.value.items.isEmpty()) {
+            return // Evita múltiples clics y pedidos vacíos
         }
 
         viewModelScope.launch {
+            _isProcessingOrder.value = true
+            delay(4000) // Simula el tiempo de procesado (4 segundos)
+
+            val currentUser = SessionManager.currentUser
+            if (currentUser == null) {
+                Log.e("CartViewModel", "Error: No hay un usuario logueado para confirmar el pedido.")
+                _isProcessingOrder.value = false
+                return@launch
+            }
+
+            val currentState = _cartState.value
             val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
             val newPedido = Pedido(
                 userEmail = currentUser.email,
-                fechaEntrega = today, // Se podría expandir para que el usuario elija
-                direccion = "Dirección de prueba 123", // Se podría obtener del perfil del usuario
+                fechaEntrega = today,
+                direccion = "Dirección de prueba 123",
                 total = currentState.total,
                 estado = "Pendiente"
             )
@@ -96,16 +103,20 @@ class CartViewModel(
             pedidoDao.insert(newPedido)
             _cartState.value = CartState() // Limpia el carrito
 
-            withContext(Dispatchers.Main) {
-                onSuccess() // Ejecuta la navegación
-            }
+            _isProcessingOrder.value = false
+            _showCheckoutAnimation.value = true // Activa la siguiente animación
         }
+    }
+
+    // Función para que la UI notifique que la animación de éxito ha sido mostrada
+    fun onCheckoutAnimationShown() {
+        _showCheckoutAnimation.value = false
     }
 
     // --- Factory para crear el ViewModel con dependencias ---
     class Factory(
         private val productoRepository: ProductoRepository,
-        private val pedidoDao: PedidoDao // Se añade el DAO de Pedidos a la Factory
+        private val pedidoDao: PedidoDao
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {

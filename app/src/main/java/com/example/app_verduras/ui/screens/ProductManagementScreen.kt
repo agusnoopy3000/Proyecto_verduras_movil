@@ -1,6 +1,7 @@
 package com.example.app_verduras.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,6 +19,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -25,6 +27,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.app_verduras.Model.Producto
 import com.example.app_verduras.viewmodel.ProductManagementViewModel
+import com.example.app_verduras.viewmodel.UiEvent
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,56 +38,95 @@ fun ProductManagementScreen(
     onNavigateBack: () -> Unit
 ) {
     val products by viewModel.products.collectAsStateWithLifecycle()
-    // Estado para saber qué producto estamos editando. Si es null, el modal no se muestra.
     var productToEdit by remember { mutableStateOf<Producto?>(null) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Gestionar Productos") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
+    // --- Estado para el Snackbar ---
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    // --- Escucha de eventos del ViewModel ---
+    LaunchedEffect(key1 = true) {
+        viewModel.eventFlow.collectLatest { event ->
+            when (event) {
+                is UiEvent.ShowSnackbar -> {
+                    scope.launch {
+                        snackbarHostState.showSnackbar(message = event.message)
                     }
                 }
-            )
+            }
         }
-    ) { paddingValues ->
+    }
 
-        // --- Lógica del Modal ---
-        productToEdit?.let { currentProduct ->
-            EditProductModal(
-                product = currentProduct,
-                onDismiss = { productToEdit = null },
-                onSave = {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Gestionar Productos") },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
+                        }
+                    }
+                )
+            }
+        ) { paddingValues ->
+
+            // --- Lógica del Modal ---
+            productToEdit?.let { currentProduct ->
+                EditProductModal(
+                    product = currentProduct,
+                    onDismiss = { productToEdit = null },
+                    onSave = {
  updatedProduct ->
-                    viewModel.updateProduct(updatedProduct)
-                    productToEdit = null // Cierra el modal después de guardar
+                        viewModel.updateProduct(updatedProduct)
+                        productToEdit = null // Cierra el modal después de guardar
+                    }
+                )
+            }
+
+            if (products.isEmpty()) {
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(paddingValues),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("No hay productos para mostrar.")
                 }
-            )
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 16.dp)
+                ) {
+                    items(products, key = { it.id }) { product ->
+                        ProductManagementItem(
+                            product = product,
+                            onEditClick = { productToEdit = product }
+                        )
+                        Divider()
+                    }
+                }
+            }
         }
 
-        if (products.isEmpty()) {
-            Column(
-                modifier = Modifier.fillMaxSize().padding(paddingValues),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text("No hay productos para mostrar.")
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 16.dp)
-            ) {
-                items(products, key = { it.id }) { product ->
-                    ProductManagementItem(
-                        product = product,
-                        onEditClick = { productToEdit = product } // Al hacer clic, asignamos el producto a editar
+        // --- Snackbar Host Personalizado ---
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(16.dp),
+            snackbar = { snackbarData ->
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFF4CAF50) // Verde
                     )
-                    Divider()
+                ) {
+                    Text(
+                        text = snackbarData.visuals.message,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                        color = Color.White
+                    )
                 }
             }
-        }
+        )
     }
 }
 
@@ -112,7 +156,6 @@ fun EditProductModal(
     onDismiss: () -> Unit,
     onSave: (Producto) -> Unit
 ) {
-    // Estados locales para los campos de texto del modal. Se inicializan con los valores del producto.
     var nombre by remember { mutableStateOf(product.nombre) }
     var precio by remember { mutableStateOf(product.precio.toString()) }
     var stock by remember { mutableStateOf(product.stock.toString()) }

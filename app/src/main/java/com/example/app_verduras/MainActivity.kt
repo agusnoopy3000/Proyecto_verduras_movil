@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -37,6 +38,7 @@ class MainActivity : ComponentActivity() {
 
 // Clase sellada para las rutas de navegación
 sealed class Screen(val route: String, val label: String, val icon: ImageVector? = null) {
+    object Splash : Screen("splash", "Splash") // Nueva pantalla de inicio
     object Login : Screen("login", "Login")
     object Register : Screen("register", "Registro")
     object WelcomeUser : Screen("welcome_user", "Bienvenido")
@@ -50,7 +52,7 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector?
     object ProductManagement : Screen("product_management", "Gestionar Productos")
     object UserManagement : Screen("user_management", "Gestionar Usuarios")
     object OrderManagement : Screen("order_management", "Gestionar Pedidos")
-    object DocumentManagement : Screen("document_management", "Gestionar Documentos") // Nueva ruta
+    object DocumentManagement : Screen("document_management", "Gestionar Documentos")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,11 +66,11 @@ fun HuertoHogarApp() {
     val userDao = db.userDao()
     val productoDao = db.productoDao()
     val pedidoDao = db.pedidoDao()
-    val documentoDao = db.documentoDao() // Añadido
+    val documentoDao = db.documentoDao()
     val productoRepository = ProductoRepository(productoDao, context.assets, RetrofitClient.apiService)
     val userRepository = UserRepository(userDao)
     val pedidoRepository = PedidoRepository(pedidoDao)
-    val documentoRepository = DocumentoRepository(documentoDao) // Añadido
+    val documentoRepository = DocumentoRepository(documentoDao)
 
     // --- ViewModels ---
     val cartViewModel: CartViewModel = viewModel(factory = CartViewModel.Factory(productoRepository, pedidoDao))
@@ -88,9 +90,8 @@ fun HuertoHogarApp() {
     Scaffold(
         topBar = {
             if (showBottomBar) {
-                val currentScreen = bottomBarItems.find { it.route == currentRoute }
                 TopAppBar(
-                    title = { Text(currentScreen?.label ?: "Huerto Hogar") },
+                    title = { /* Título eliminado para un diseño más limpio */ },
                     actions = {
                         IconButton(onClick = {
                             authViewModel.logout()
@@ -134,10 +135,18 @@ fun HuertoHogarApp() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Login.route,
+            startDestination = Screen.Splash.route, // La app ahora empieza aquí
             modifier = Modifier.padding(innerPadding)
         ) {
-            // ... (Otras rutas)
+
+            composable(Screen.Splash.route) {
+                SplashScreen(onTimeout = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Splash.route) { inclusive = true } // Elimina la splash de la pila
+                    }
+                })
+            }
+
             composable(Screen.Login.route) {
                 LoginScreen(
                     authViewModel = authViewModel,
@@ -205,11 +214,26 @@ fun HuertoHogarApp() {
             }
 
             composable(Screen.Cart.route) {
-                CartScreen(
-                    viewModel = cartViewModel,
-                    onConfirmOrder = {
+                val application = LocalContext.current.applicationContext as Application
+                val locationViewModel: LocationViewModel = viewModel(factory = LocationViewModelFactory(application))
+                val showCheckoutAnimation by cartViewModel.showCheckoutAnimation.collectAsState()
+
+                // Navega a la pantalla de confirmación cuando el ViewModel lo indica.
+                LaunchedEffect(showCheckoutAnimation) {
+                    if (showCheckoutAnimation) {
                         navController.navigate(Screen.Confirmation.route) {
                             popUpTo(Screen.Home.route)
+                        }
+                        cartViewModel.onCheckoutAnimationShown() // Resetea el estado para evitar re-navegación.
+                    }
+                }
+
+                CartScreen(
+                    cartViewModel = cartViewModel,
+                    locationViewModel = locationViewModel,
+                    onGoToCatalog = {
+                        navController.navigate(Screen.Catalog.route) {
+                            popUpTo(navController.graph.findStartDestination().id)
                         }
                     }
                 )
@@ -230,7 +254,7 @@ fun HuertoHogarApp() {
                     onNavigateToProductManagement = { navController.navigate(Screen.ProductManagement.route) },
                     onNavigateToUserManagement = { navController.navigate(Screen.UserManagement.route) },
                     onNavigateToOrderManagement = { navController.navigate(Screen.OrderManagement.route) },
-                    onNavigateToDocumentManagement = { navController.navigate(Screen.DocumentManagement.route) }, // Añadido
+                    onNavigateToDocumentManagement = { navController.navigate(Screen.DocumentManagement.route) },
                     onLogout = {
                         navController.navigate(Screen.Login.route) {
                             popUpTo(navController.graph.findStartDestination().id) {
@@ -272,7 +296,7 @@ fun HuertoHogarApp() {
                  })
             }
 
-            composable(Screen.DocumentManagement.route) { // Añadido
+            composable(Screen.DocumentManagement.route) {
                 val app = context.applicationContext as Application
                 val documentoVM: DocumentoViewModel = viewModel(factory = DocumentoViewModel.Factory(app, documentoRepository))
                 DocumentosScreen(

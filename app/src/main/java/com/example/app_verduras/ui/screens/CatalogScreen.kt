@@ -1,26 +1,28 @@
 package com.example.app_verduras.ui.screens
 
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import coil.compose.rememberAsyncImagePainter
 import com.example.app_verduras.Model.Producto
 import com.example.app_verduras.viewmodel.CartItem
 import com.example.app_verduras.viewmodel.CartViewModel
@@ -31,108 +33,50 @@ import com.example.app_verduras.viewmodel.CatalogViewModel
 fun CatalogScreen(viewModel: CatalogViewModel, cartViewModel: CartViewModel) {
     val state by viewModel.uiState.collectAsState()
     val cartState by cartViewModel.cartState.collectAsState()
-
-    // CORRECCIÓN: Usar '''id''' en lugar de '''codigo''' para crear el mapa.
     val cartItemsMap = cartState.items.associateBy { it.product.id }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Image(
-            painter = rememberAsyncImagePainter("file:///android_asset/img/huerto_hogar.jpeg"),
-            contentDescription = "Fondo de huerto",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxSize()
-                .drawWithContent {
-                    drawContent()
-                    drawRect(color = Color.Black.copy(alpha = 0.6f))
-                }
-        )
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
+    ) {
+        Spacer(modifier = Modifier.height(16.dp))
+        // --- Título y Filtros ---
+        Text("Nuestro Catálogo", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(bottom = 16.dp))
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OutlinedTextField(
+                value = state.search,
+                onValueChange = { viewModel.updateSearch(it) },
+                label = { Text("Buscar...") },
+                modifier = Modifier.weight(1f)
+            )
+            CategoryDropdown(
+                categories = state.categories,
+                selected = state.selectedCategory,
+                onSelect = { viewModel.updateCategory(it) }
+            )
+        }
 
-        Scaffold(
-            containerColor = Color.Transparent,
-            topBar = {
-                TopAppBar(
-                    title = { Text("Catálogo de Verduras") },
-                    actions = {
-                        IconButton(onClick = { /* TODO: Navegar al carrito */ }) {
-                            BadgedBox(
-                                badge = {
-                                    if (cartState.items.isNotEmpty()) {
-                                        Badge {
-                                            // MEJORA: Mostrar la cantidad total de ítems en lugar de solo los productos únicos.
-                                            val totalItems = cartState.items.sumOf { it.qty }
-                                            Text("$totalItems")
-                                        }
-                                    }
-                                }
-                            ) {
-                                Icon(
-                                    Icons.Default.ShoppingCart,
-                                    contentDescription = "Carrito de compras"
-                                )
-                            }
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Black.copy(alpha = 0.3f),
-                        titleContentColor = Color.White,
-                        actionIconContentColor = Color.White
-                    )
+        Spacer(Modifier.height(16.dp))
+
+        // --- Grid de productos ---
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(minSize = 180.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            items(state.filteredProducts) { p ->
+                ProductCard(
+                    product = p,
+                    cartItem = cartItemsMap[p.id],
+                    onAdd = { cartViewModel.addToCart(p.id) },
+                    onIncrease = { cartViewModel.increase(p.id) },
+                    onDecrease = { cartViewModel.decrease(p.id) }
                 )
-            }
-        ) { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 16.dp)
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp)
-                ) {
-                    OutlinedTextField(
-                        value = state.search,
-                        onValueChange = { viewModel.updateSearch(it) },
-                        label = { Text("Buscar producto...") },
-                        modifier = Modifier.weight(1f),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color.White,
-                            unfocusedBorderColor = Color.Gray,
-                            cursorColor = Color.White,
-                            focusedLabelColor = Color.White,
-                            unfocusedLabelColor = Color.Gray,
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
-                        )
-                    )
-                    CategoryDropdown(
-                        categories = state.categories,
-                        selected = state.selectedCategory,
-                        onSelect = { viewModel.updateCategory(it) }
-                    )
-                }
-                Spacer(Modifier.height(12.dp))
-
-                LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = 160.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(state.filteredProducts) { p ->
-                        // CORRECCIÓN: Pasar '''id''' en lugar de '''codigo''' a los métodos del ViewModel.
-                        ProductCard(
-                            product = p,
-                            cartItem = cartItemsMap[p.id],
-                            onAdd = { cartViewModel.addToCart(p.id) },
-                            onIncrease = { cartViewModel.increase(p.id) },
-                            onDecrease = { cartViewModel.decrease(p.id) }
-                        )
-                    }
-                }
             }
         }
     }
@@ -150,25 +94,10 @@ fun CategoryDropdown(categories: List<String>, selected: String?, onSelect: (Str
     ) {
         OutlinedTextField(
             value = selected ?: "Todas",
-            onValueChange = {},
+            onValueChange = { },
             readOnly = true,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier
-                .menuAnchor()
-                .widthIn(min = 160.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color.White,
-                unfocusedBorderColor = Color.Gray,
-                focusedTrailingIconColor = Color.White,
-                unfocusedTrailingIconColor = Color.Gray,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                focusedLabelColor = Color.White,
-                unfocusedLabelColor = Color.Gray,
-                // These are for the container, we want it to blend
-                unfocusedContainerColor = Color.Transparent,
-                focusedContainerColor = Color.Transparent
-            )
+            modifier = Modifier.menuAnchor().width(150.dp)
         )
         ExposedDropdownMenu(
             expanded = expanded,
@@ -196,70 +125,96 @@ fun ProductCard(
     onIncrease: () -> Unit,
     onDecrease: () -> Unit
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(300.dp), // Increased height for better spacing
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    OutlinedCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        Column {
             AsyncImage(
-                // CORRECCIÓN: Usar '''imagen''' en lugar de '''img''' y proporcionar un valor por defecto.
                 model = product.imagen ?: "file:///android_asset/img/default.png",
                 contentDescription = product.nombre,
-                modifier = Modifier.size(80.dp)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = product.nombre,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-            Text(
-                text = "$${product.precio} CLP",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                // CORRECCIÓN: Manejar el caso en que la descripción sea nula.
-                text = product.descripcion ?: "",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.secondary,
-                maxLines = 3, // Allow a bit more text
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.height(50.dp) // Give description a fixed height
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+                    .clip(MaterialTheme.shapes.medium)
             )
 
-            Spacer(modifier = Modifier.weight(1f)) // This pushes the button to the bottom
+            Column(
+                modifier = Modifier
+                    .padding(12.dp)
+                    .fillMaxWidth(),
+            ) {
+                Text(
+                    text = product.nombre,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = product.descripcion ?: "",
+                    style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.heightIn(min = 40.dp)
+                )
 
-            // Button or counter
-            if (cartItem == null || cartItem.qty == 0) {
-                Button(onClick = onAdd, modifier = Modifier.fillMaxWidth()) {
-                    Text("Agregar")
-                }
-            } else {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier.fillMaxWidth()
+                Spacer(Modifier.height(8.dp))
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
-                    IconButton(onClick = onDecrease) {
-                        Icon(Icons.Filled.Remove, "Quitar uno")
-                    }
                     Text(
-                        text = "${cartItem.qty}",
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(horizontal = 8.dp)
+                        text = "$${product.precio} CLP",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.align(Alignment.Start)
                     )
-                    IconButton(onClick = onIncrease) {
-                        Icon(Icons.Filled.Add, "Añadir uno")
+
+                    Spacer(Modifier.height(8.dp))
+
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.CenterEnd
+                    ) {
+                        if (cartItem == null || cartItem.qty == 0) {
+                            Button(
+                                onClick = onAdd,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF4CAF50) // Green
+                                )
+                            ) {
+                                Icon(Icons.Default.AddShoppingCart, contentDescription = "Agregar al carrito")
+                            }
+                        } else {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                OutlinedIconButton(
+                                    onClick = onDecrease,
+                                    modifier = Modifier.size(28.dp),
+                                    border = BorderStroke(1.dp, Color.Red)
+                                ) {
+                                    Icon(Icons.Filled.Remove, "Quitar uno", tint = Color.Red)
+                                }
+                                Text(
+                                    text = "${cartItem.qty}",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    modifier = Modifier.padding(horizontal = 4.dp)
+                                )
+                                IconButton(
+                                    onClick = onIncrease,
+                                    modifier = Modifier
+                                        .size(28.dp)
+                                        .background(Color(0xFF4CAF50), shape = CircleShape),
+                                    colors = IconButtonDefaults.iconButtonColors(contentColor = Color.White)
+                                ) {
+                                    Icon(Icons.Filled.Add, "Añadir uno")
+                                }
+                            }
+                        }
                     }
                 }
             }
