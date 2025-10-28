@@ -1,22 +1,22 @@
+
 package com.example.app_verduras.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.app_verduras.Model.Pedido
 import com.example.app_verduras.Model.Producto
+import com.example.app_verduras.Model.Pedido
 import com.example.app_verduras.dal.PedidoDao
+import com.example.app_verduras.dal.UserDao
 import com.example.app_verduras.repository.ProductoRepository
 import com.example.app_verduras.util.SessionManager
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.*
 
 // --- Modelos del carrito ---
 data class CartItem(val product: Producto, val qty: Int)
@@ -24,18 +24,29 @@ data class CartState(val items: List<CartItem> = emptyList()) {
     val total: Double get() = items.sumOf { it.product.precio * it.qty }
 }
 
+// PASO 1: Añadir un estado de Error a la sealed class
+sealed class OrderProcessingState {
+    object Idle : OrderProcessingState()
+    object Processing : OrderProcessingState()
+    object Success : OrderProcessingState()
+    data class Error(val message: String) : OrderProcessingState() // Estado de error con mensaje
+}
+
 // --- ViewModel principal del carrito ---
 class CartViewModel(
     private val productoRepository: ProductoRepository,
-    private val pedidoDao: PedidoDao // Se inyecta el DAO de Pedidos
+    private val pedidoDao: PedidoDao,
+    private val userDao: UserDao
 ) : ViewModel() {
 
     private val _cartState = MutableStateFlow(CartState())
     val cartState = _cartState.asStateFlow()
 
+    private val _orderProcessingState = MutableStateFlow<OrderProcessingState>(OrderProcessingState.Idle)
+    val orderProcessingState = _orderProcessingState.asStateFlow()
+
     fun addToCart(productId: String) {
         viewModelScope.launch {
-            // Asumimos que el repositorio tiene un método para buscar por el ID de String
             val product = productoRepository.getById(productId)
             product?.let { foundProduct ->
                 val currentItems = _cartState.value.items.toMutableList()
@@ -69,48 +80,71 @@ class CartViewModel(
         }
     }
 
-    // Confirmar pedido (Sin cambios, ya estaba correcto)
-    fun confirmOrder(onSuccess: () -> Unit) {
-        val currentUser = SessionManager.currentUser
-        if (currentUser == null) {
-            Log.e("CartViewModel", "Error: No hay un usuario logueado para confirmar el pedido.")
-            return
-        }
+    fun remove(productId: String) {
+        val currentItems = _cartState.value.items.toMutableList()
+        currentItems.removeAll { it.product.id == productId }
+        _cartState.value = CartState(currentItems)
+    }
 
-        val currentState = _cartState.value
-        if (currentState.items.isEmpty()) {
-            Log.w("CartViewModel", "Intento de confirmar un pedido con el carrito vacío.")
-            return
-        }
+    // PASO 2: Modificar confirmOrder para que emita el estado de Error
+    fun confirmOrder() {
+        if (_orderProcessingState.value is OrderProcessingState.Processing) return
+        if (_cartState.value.items.isEmpty()) return
 
         viewModelScope.launch {
-            val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-            val newPedido = Pedido(
-                userEmail = currentUser.email,
-                fechaEntrega = today, // Se podría expandir para que el usuario elija
-                direccion = "Dirección de prueba 123", // Se podría obtener del perfil del usuario
-                total = currentState.total,
-                estado = "Pendiente"
-            )
+            _orderProcessingState.value = OrderProcessingState.Processing
 
-            pedidoDao.insert(newPedido)
-            _cartState.value = CartState() // Limpia el carrito
+            var errorMessage: String? = null
+            val wasSuccessful = try {
+                val userEmail = SessionManager.currentUser?.email
+                    ?: throw IllegalStateException("Usuario no logueado.")
 
-            withContext(Dispatchers.Main) {
-                onSuccess() // Ejecuta la navegación
+                val user = userDao.findByEmail(userEmail)
+                    ?: throw IllegalStateException("Usuario no encontrado en la base de datos.")
+
+                val newPedido = Pedido(
+                    userEmail = user.email,
+                    fechaEntrega = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()),
+                    direccion = user.direccion ?: "Dirección no disponible",
+                    total = _cartState.value.total,
+                    estado = "En preparación"
+                )
+                pedidoDao.insert(newPedido)
+                true
+            } catch (e: Exception) {
+                errorMessage = e.message // Capturamos el mensaje de error
+                Log.e("CartViewModel", "Error al confirmar el pedido: ${e.message}")
+                false
+            }
+
+            delay(4000L)
+
+            if (wasSuccessful) {
+                _cartState.value = CartState()
+                _orderProcessingState.value = OrderProcessingState.Success
+                delay(100L) // Pausa para asegurar que la UI procese el estado Success
+                _orderProcessingState.value = OrderProcessingState.Idle // Volvemos a Idle
+            } else {
+                // Si falló, emitimos el estado de Error con el mensaje
+                _orderProcessingState.value = OrderProcessingState.Error(errorMessage ?: "Error desconocido al procesar el pedido.")
             }
         }
     }
+    
+    // PASO 3: Añadir una función para resetear el estado desde la UI
+    fun dismissError() {
+        _orderProcessingState.value = OrderProcessingState.Idle
+    }
 
-    // Factory para crear el ViewModel con dependencias ---
     class Factory(
         private val productoRepository: ProductoRepository,
-        private val pedidoDao: PedidoDao // Se añade el DAO de Pedidos a la Factory
+        private val pedidoDao: PedidoDao,
+        private val userDao: UserDao
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(CartViewModel::class.java)) {
-                return CartViewModel(productoRepository, pedidoDao) as T
+                return CartViewModel(productoRepository, pedidoDao, userDao) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

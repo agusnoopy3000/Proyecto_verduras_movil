@@ -16,7 +16,7 @@ fun AdminPanelScreen(
     onNavigateToProductManagement: () -> Unit,
     onNavigateToUserManagement: () -> Unit,
     onNavigateToOrderManagement: () -> Unit,
-    onNavigateToDocumentManagement: () -> Unit, // Añadido
+    onNavigateToDocumentManagement: () -> Unit,
     onLogout: () -> Unit
 ) {
     Scaffold(
@@ -61,7 +61,7 @@ fun AdminPanelScreen(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
-                    onClick = onNavigateToDocumentManagement, // Añadido
+                    onClick = onNavigateToDocumentManagement,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Gestionar Documentos")

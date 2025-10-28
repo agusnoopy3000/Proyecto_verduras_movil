@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,7 +32,8 @@ import com.example.app_verduras.viewmodel.DocumentoViewModel
 @Composable
 fun DocumentosScreen(
     viewModel: DocumentoViewModel,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onLogout: () -> Unit
 ) {
     val documentos by viewModel.documentos.collectAsStateWithLifecycle(initialValue = emptyList())
     val isUploading by viewModel.isUploading.collectAsStateWithLifecycle()
@@ -61,6 +63,11 @@ fun DocumentosScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onLogout) {
+                        Icon(Icons.Default.ExitToApp, "Cerrar Sesión")
                     }
                 }
             )

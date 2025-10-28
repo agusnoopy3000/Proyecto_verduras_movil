@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,7 +23,8 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun OrderManagementScreen(
     viewModel: OrderManagementViewModel,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onLogout: () -> Unit
 ) {
     val pedidos by viewModel.pedidos.collectAsStateWithLifecycle(initialValue = emptyList())
     var pedidoToEdit by remember { mutableStateOf<Pedido?>(null) }
@@ -52,6 +54,11 @@ fun OrderManagementScreen(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Volver"
                             )
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = onLogout) {
+                            Icon(Icons.Default.ExitToApp, "Cerrar Sesión")
                         }
                     }
                 )

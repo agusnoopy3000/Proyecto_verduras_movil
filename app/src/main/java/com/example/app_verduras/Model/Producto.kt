@@ -5,13 +5,12 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "productos")
 data class Producto(
-    @PrimaryKey // El ID ahora viene de la red, no se autogenera.
+    @PrimaryKey
     val id: String,
     val nombre: String,
     val precio: Double,
-    val imagen: String, // Coincide con el modelo de red
+    val imagen: String,
     val categoria: String,
-    // Campos que solo existen localmente o que se llenarán después.
     val descripcion: String? = null,
     val stock: Int = 0,
     val codigo: String? = null

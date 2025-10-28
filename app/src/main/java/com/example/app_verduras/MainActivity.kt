@@ -14,7 +14,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.*
@@ -30,17 +29,17 @@ import com.example.app_verduras.viewmodel.*
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        installSplashScreen()
         setContent {
             HuertoHogarApp()
         }
     }
 }
 
-// Clase sellada para las rutas de navegación
 sealed class Screen(val route: String, val label: String, val icon: ImageVector? = null) {
+    object Splash : Screen("splash", "Splash")
     object Login : Screen("login", "Login")
     object Register : Screen("register", "Registro")
+    object ForgotPassword : Screen("forgot_password", "Recuperar Contraseña")
     object WelcomeUser : Screen("welcome_user", "Bienvenido")
     object WelcomeAdmin : Screen("welcome_admin", "Bienvenido Admin")
     object Home : Screen("home", "Inicio", Icons.Default.Home)
@@ -52,7 +51,7 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector?
     object ProductManagement : Screen("product_management", "Gestionar Productos")
     object UserManagement : Screen("user_management", "Gestionar Usuarios")
     object OrderManagement : Screen("order_management", "Gestionar Pedidos")
-    object DocumentManagement : Screen("document_management", "Gestionar Documentos") // Nueva ruta
+    object DocumentManagement : Screen("document_management", "Gestionar Documentos")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -62,18 +61,16 @@ fun HuertoHogarApp() {
     val context = LocalContext.current
     val db = AppDatabase.getDatabase(context)
 
-    // --- DAOs y Repositorios ---
     val userDao = db.userDao()
     val productoDao = db.productoDao()
     val pedidoDao = db.pedidoDao()
-    val documentoDao = db.documentoDao() // Añadido
+    val documentoDao = db.documentoDao()
     val productoRepository = ProductoRepository(productoDao, context.assets, RetrofitClient.apiService)
     val userRepository = UserRepository(userDao)
     val pedidoRepository = PedidoRepository(pedidoDao)
-    val documentoRepository = DocumentoRepository(documentoDao) // Añadido
+    val documentoRepository = DocumentoRepository(documentoDao)
 
-    // --- ViewModels ---
-    val cartViewModel: CartViewModel = viewModel(factory = CartViewModel.Factory(productoRepository, pedidoDao))
+    val cartViewModel: CartViewModel = viewModel(factory = CartViewModel.Factory(productoRepository, pedidoDao, userDao))
     val authViewModel: AuthViewModel = viewModel(factory = AuthViewModel.Factory(userDao))
     val databaseViewModel: DatabaseViewModel = viewModel(factory = DatabaseViewModel.Factory(productoRepository))
     val locationViewModel: LocationViewModel = viewModel()
@@ -82,16 +79,32 @@ fun HuertoHogarApp() {
         databaseViewModel.initializeDatabase()
     }
 
-    // --- Lógica de la Bottom Bar ---
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+    val screensWithoutBars = listOf(
+        Screen.Splash.route,
+        Screen.Login.route,
+        Screen.Register.route,
+        Screen.ForgotPassword.route,
+        Screen.WelcomeUser.route,
+        Screen.WelcomeAdmin.route,
+        Screen.AdminPanel.route,
+        Screen.ProductManagement.route,
+        Screen.UserManagement.route,
+        Screen.OrderManagement.route,
+        Screen.DocumentManagement.route,
+        Screen.Confirmation.route
+    )
+    val showBars = currentRoute !in screensWithoutBars
+
     val bottomBarItems = listOf(Screen.Home, Screen.Catalog, Screen.Cart, Screen.QRScanner)
-    val showBottomBar = currentRoute in bottomBarItems.map { it.route }
+
 
     Scaffold(
         topBar = {
-            if (showBottomBar) {
-                val currentScreen = bottomBarItems.find { it.route == currentRoute }
+            if (showBars) {
+                 val currentScreen = bottomBarItems.find { it.route == currentRoute }
                 TopAppBar(
                     title = { Text(currentScreen?.label ?: "Huerto Hogar") },
                     actions = {
@@ -111,7 +124,7 @@ fun HuertoHogarApp() {
             }
         },
         bottomBar = {
-            if (showBottomBar) {
+            if (showBars) {
                 NavigationBar {
                     bottomBarItems.forEach { screen ->
                         NavigationBarItem(
@@ -137,43 +150,31 @@ fun HuertoHogarApp() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Login.route,
+            startDestination = Screen.Splash.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-            // ... (Otras rutas)
+            composable(Screen.Splash.route) {
+                SplashScreen(navController = navController)
+            }
+
             composable(Screen.Login.route) {
                 LoginScreen(
-                    authViewModel = authViewModel,
-                    onLoginSuccess = {
-                        navController.navigate(Screen.WelcomeUser.route) {
-                            popUpTo(Screen.Login.route) { inclusive = true }
-                        }
-                    },
-                    onAdminLoginSuccess = {
-                        navController.navigate(Screen.WelcomeAdmin.route) {
-                            popUpTo(Screen.Login.route) { inclusive = true }
-                        }
-                    },
-                    onNavigateToRegister = {
-                        navController.navigate(Screen.Register.route)
-                    }
+                    navController = navController,
+                    authViewModel = authViewModel
                 )
             }
 
             composable(Screen.Register.route) {
                 RegisterScreen(
-                    authViewModel = authViewModel,
-                    onRegisterSuccess = {
-                        navController.navigate(Screen.Login.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                inclusive = true
-                            }
-                            launchSingleTop = true
-                        }
-                    },
-                    onNavigateToLogin = {
-                        navController.popBackStack()
-                    }
+                    navController = navController,
+                    authViewModel = authViewModel
+                )
+            }
+
+            composable(Screen.ForgotPassword.route) {
+                ForgotPasswordScreen(
+                    navController = navController,
+                    authViewModel = authViewModel
                 )
             }
 
@@ -230,20 +231,23 @@ fun HuertoHogarApp() {
                 )
             }
 
+            val onLogout = {
+                authViewModel.logout()
+                navController.navigate(Screen.Login.route) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
+            }
+
             composable(Screen.AdminPanel.route) {
                 AdminPanelScreen(
                     onNavigateToProductManagement = { navController.navigate(Screen.ProductManagement.route) },
                     onNavigateToUserManagement = { navController.navigate(Screen.UserManagement.route) },
                     onNavigateToOrderManagement = { navController.navigate(Screen.OrderManagement.route) },
-                    onNavigateToDocumentManagement = { navController.navigate(Screen.DocumentManagement.route) }, // Añadido
-                    onLogout = {
-                        navController.navigate(Screen.Login.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                inclusive = true
-                            }
-                            launchSingleTop = true
-                        }
-                    }
+                    onNavigateToDocumentManagement = { navController.navigate(Screen.DocumentManagement.route) },
+                    onLogout = onLogout
                 )
             }
 
@@ -251,7 +255,8 @@ fun HuertoHogarApp() {
                 val productManagementVM: ProductManagementViewModel = viewModel(factory = ProductManagementViewModel.Factory(productoRepository))
                 ProductManagementScreen(
                     viewModel = productManagementVM,
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onLogout = onLogout
                 )
             }
 
@@ -259,7 +264,8 @@ fun HuertoHogarApp() {
                 val userManagementVM: UserManagementViewModel = viewModel(factory = UserManagementViewModel.Factory(userRepository))
                 UserManagementScreen(
                     viewModel = userManagementVM,
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onLogout = onLogout
                 )
             }
 
@@ -267,22 +273,24 @@ fun HuertoHogarApp() {
                 val orderManagementVM: OrderManagementViewModel = viewModel(factory = OrderManagementViewModel.Factory(pedidoRepository))
                 OrderManagementScreen(
                     viewModel = orderManagementVM,
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onLogout = onLogout
                 )
             }
 
             composable(Screen.QRScanner.route) {
-                 QRScannerScreen(onQrCodeScanned = { result ->
+                 QRScannerScreen(onQrCodeScanned = {
                      navController.popBackStack()
                  })
             }
 
-            composable(Screen.DocumentManagement.route) { // Añadido
+            composable(Screen.DocumentManagement.route) {
                 val app = context.applicationContext as Application
                 val documentoVM: DocumentoViewModel = viewModel(factory = DocumentoViewModel.Factory(app, documentoRepository))
                 DocumentosScreen(
                     viewModel = documentoVM,
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onLogout = onLogout
                 )
             }
         }

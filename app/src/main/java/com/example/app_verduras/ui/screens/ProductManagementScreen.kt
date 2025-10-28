@@ -15,6 +15,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,16 +36,15 @@ import kotlinx.coroutines.launch
 @Composable
 fun ProductManagementScreen(
     viewModel: ProductManagementViewModel,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onLogout: () -> Unit
 ) {
     val products by viewModel.products.collectAsStateWithLifecycle()
     var productToEdit by remember { mutableStateOf<Producto?>(null) }
 
-    // --- Estado para el Snackbar ---
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    // --- Escucha de eventos del ViewModel ---
     LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
@@ -66,20 +66,23 @@ fun ProductManagementScreen(
                         IconButton(onClick = onNavigateBack) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
                         }
+                    },
+                    actions = {
+                        IconButton(onClick = onLogout) {
+                            Icon(Icons.Default.ExitToApp, "Cerrar Sesión")
+                        }
                     }
                 )
             }
         ) { paddingValues ->
 
-            // --- Lógica del Modal ---
             productToEdit?.let { currentProduct ->
                 EditProductModal(
                     product = currentProduct,
                     onDismiss = { productToEdit = null },
-                    onSave = {
- updatedProduct ->
+                    onSave = { updatedProduct ->
                         viewModel.updateProduct(updatedProduct)
-                        productToEdit = null // Cierra el modal después de guardar
+                        productToEdit = null
                     }
                 )
             }
@@ -107,7 +110,6 @@ fun ProductManagementScreen(
             }
         }
 
-        // --- Snackbar Host Personalizado ---
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier

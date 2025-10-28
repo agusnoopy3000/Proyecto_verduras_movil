@@ -20,7 +20,7 @@ class UserManagementViewModel(private val userRepository: UserRepository) : View
     fun updateUser(user: User) {
         viewModelScope.launch {
             userRepository.update(user)
-            _eventChannel.send(UiEvent.ShowSnackbar("Cambios guardados correctamente"))
+            _eventChannel.send(UiEvent.ShowSnackbar("Cambios hechos correctamente"))
             _eventChannel.send(UiEvent.DismissEditModal)
         }
     }
