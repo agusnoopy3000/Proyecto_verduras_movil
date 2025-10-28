@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
@@ -16,14 +17,13 @@ class LocationViewModel : ViewModel() {
     private val _shippingCost = MutableStateFlow(0.0)
     val shippingCost = _shippingCost.asStateFlow()
 
-    private val _locationEnabled = mutableStateOf(false)
-    val locationEnabled: Boolean
-        get() = _locationEnabled.value
+    // El estado ahora es observable y su valor por defecto es 'true'
+    private val _locationEnabled = mutableStateOf(true)
+    val locationEnabled: State<Boolean> = _locationEnabled
 
     @SuppressLint("MissingPermission")
     fun getDeviceLocation(context: Context) {
         if (!hasLocationPermission(context)) {
-
             _shippingCost.value = 0.0
             return
         }
@@ -31,10 +31,9 @@ class LocationViewModel : ViewModel() {
         val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
             if (location != null) {
-                 //valor del envio
+                // Si se encuentra la ubicación, se establece el costo de envío.
                 _shippingCost.value = 2500.0
             } else {
-
                 _shippingCost.value = 0.0
             }
         }.addOnFailureListener {
@@ -45,8 +44,10 @@ class LocationViewModel : ViewModel() {
     fun setLocationEnabled(enabled: Boolean, context: Context) {
         _locationEnabled.value = enabled
         if (enabled) {
+            // Si se activa, intenta calcular el costo.
             getDeviceLocation(context)
         } else {
+            // Si se desactiva, el costo es cero.
             _shippingCost.value = 0.0
         }
     }

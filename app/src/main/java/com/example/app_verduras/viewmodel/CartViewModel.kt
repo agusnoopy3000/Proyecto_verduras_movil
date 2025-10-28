@@ -24,12 +24,11 @@ data class CartState(val items: List<CartItem> = emptyList()) {
     val total: Double get() = items.sumOf { it.product.precio * it.qty }
 }
 
-// PASO 1: Añadir un estado de Error a la sealed class
 sealed class OrderProcessingState {
     object Idle : OrderProcessingState()
     object Processing : OrderProcessingState()
     object Success : OrderProcessingState()
-    data class Error(val message: String) : OrderProcessingState() // Estado de error con mensaje
+    data class Error(val message: String) : OrderProcessingState()
 }
 
 // --- ViewModel principal del carrito ---
@@ -44,6 +43,23 @@ class CartViewModel(
 
     private val _orderProcessingState = MutableStateFlow<OrderProcessingState>(OrderProcessingState.Idle)
     val orderProcessingState = _orderProcessingState.asStateFlow()
+
+    private val _userAddress = MutableStateFlow<String?>(null)
+    val userAddress = _userAddress.asStateFlow()
+
+    init {
+        loadUserAddress()
+    }
+
+    private fun loadUserAddress() {
+        viewModelScope.launch {
+            val userEmail = SessionManager.currentUser?.email
+            if (userEmail != null) {
+                val user = userDao.findByEmail(userEmail)
+                _userAddress.value = user?.direccion
+            }
+        }
+    }
 
     fun addToCart(productId: String) {
         viewModelScope.launch {
@@ -86,8 +102,7 @@ class CartViewModel(
         _cartState.value = CartState(currentItems)
     }
 
-    // PASO 2: Modificar confirmOrder para que emita el estado de Error
-    fun confirmOrder() {
+    fun confirmOrder(deliveryAddress: String, deliveryDate: String, finalTotal: Double) {
         if (_orderProcessingState.value is OrderProcessingState.Processing) return
         if (_cartState.value.items.isEmpty()) return
 
@@ -99,39 +114,34 @@ class CartViewModel(
                 val userEmail = SessionManager.currentUser?.email
                     ?: throw IllegalStateException("Usuario no logueado.")
 
-                val user = userDao.findByEmail(userEmail)
-                    ?: throw IllegalStateException("Usuario no encontrado en la base de datos.")
-
                 val newPedido = Pedido(
-                    userEmail = user.email,
-                    fechaEntrega = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()),
-                    direccion = user.direccion ?: "Dirección no disponible",
-                    total = _cartState.value.total,
+                    userEmail = userEmail,
+                    fechaEntrega = deliveryDate,
+                    direccion = deliveryAddress,
+                    total = finalTotal,
                     estado = "En preparación"
                 )
                 pedidoDao.insert(newPedido)
                 true
             } catch (e: Exception) {
-                errorMessage = e.message // Capturamos el mensaje de error
+                errorMessage = e.message
                 Log.e("CartViewModel", "Error al confirmar el pedido: ${e.message}")
                 false
             }
 
-            delay(4000L)
+            delay(2000L) // Simula el tiempo de procesamiento
 
             if (wasSuccessful) {
-                _cartState.value = CartState()
+                _cartState.value = CartState() // Limpia el carrito
                 _orderProcessingState.value = OrderProcessingState.Success
-                delay(100L) // Pausa para asegurar que la UI procese el estado Success
-                _orderProcessingState.value = OrderProcessingState.Idle // Volvemos a Idle
+                delay(100L) 
+                _orderProcessingState.value = OrderProcessingState.Idle
             } else {
-                // Si falló, emitimos el estado de Error con el mensaje
                 _orderProcessingState.value = OrderProcessingState.Error(errorMessage ?: "Error desconocido al procesar el pedido.")
             }
         }
     }
     
-    // PASO 3: Añadir una función para resetear el estado desde la UI
     fun dismissError() {
         _orderProcessingState.value = OrderProcessingState.Idle
     }

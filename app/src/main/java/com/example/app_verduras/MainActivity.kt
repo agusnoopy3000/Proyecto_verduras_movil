@@ -35,6 +35,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+// Clase sellada para las rutas de navegación
 sealed class Screen(val route: String, val label: String, val icon: ImageVector? = null) {
     object Splash : Screen("splash", "Splash")
     object Login : Screen("login", "Login")
@@ -45,6 +46,7 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector?
     object Home : Screen("home", "Inicio", Icons.Default.Home)
     object Catalog : Screen("catalog", "Catálogo", Icons.Default.List)
     object Cart : Screen("cart", "Carrito", Icons.Default.ShoppingCart)
+    object Pedido : Screen("pedido", "Resumen del Pedido")
     object QRScanner : Screen("qr_scanner", "QR", Icons.Filled.QrCodeScanner)
     object Confirmation : Screen("confirmation", "Confirmación")
     object AdminPanel : Screen("admin_panel", "Panel de Administrador")
@@ -94,7 +96,8 @@ fun HuertoHogarApp() {
         Screen.UserManagement.route,
         Screen.OrderManagement.route,
         Screen.DocumentManagement.route,
-        Screen.Confirmation.route
+        Screen.Confirmation.route,
+        Screen.Pedido.route
     )
     val showBars = currentRoute !in screensWithoutBars
 
@@ -211,13 +214,16 @@ fun HuertoHogarApp() {
             composable(Screen.Cart.route) {
                 CartScreen(
                     cartViewModel = cartViewModel,
-                    locationViewModel = locationViewModel,
-                    onConfirmOrder = {
-                        navController.navigate(Screen.Confirmation.route) {
-                            popUpTo(Screen.Home.route)
-                        }
-                    },
+                    onConfirmOrder = { navController.navigate(Screen.Pedido.route) }, 
                     onGoToCatalog = { navController.navigate(Screen.Catalog.route) }
+                )
+            }
+
+            composable(Screen.Pedido.route) {
+                PedidoScreen(
+                    navController = navController,
+                    cartViewModel = cartViewModel,
+                    locationViewModel = locationViewModel
                 )
             }
 
