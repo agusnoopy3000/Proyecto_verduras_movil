@@ -1,7 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("com.google.devtools.ksp")
+    id("kotlin-kapt")
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
@@ -58,7 +58,6 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
-    implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.navigation:navigation-compose:2.8.3")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4")
@@ -76,7 +75,7 @@ dependencies {
     // Room para la base de datos local
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
-    ksp("androidx.room:room-compiler:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
@@ -86,12 +85,9 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
-    // AWS SDK - VOLVIENDO A LA VERSIÓN QUE FUNCIONABA
+    // AWS SDK para S3
     implementation("com.amazonaws:aws-android-sdk-s3:2.77.0")
     implementation("com.amazonaws:aws-android-sdk-core:2.77.0")
-
-    // Lottie para Animaciones
-    implementation("com.airbnb.android:lottie-compose:6.4.1")
 
     // CameraX para la cámara
     implementation("androidx.camera:camera-core:1.3.4")
@@ -102,10 +98,12 @@ dependencies {
     // ML Kit para escanear códigos de barras
     implementation("com.google.mlkit:barcode-scanning:17.2.0")
 
-    // Google Play Services para Ubicación
-    implementation("com.google.android.gms:play-services-location:21.3.0")
-
+    // Dependencias de prueba
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.mockito:mockito-core:4.5.1") // <-- AÑADIDO
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.1")
+
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
     androidTestImplementation(platform("androidx.compose:compose-bom:2024.06.00"))
