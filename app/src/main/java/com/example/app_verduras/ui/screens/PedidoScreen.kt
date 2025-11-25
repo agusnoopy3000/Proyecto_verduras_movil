@@ -36,7 +36,7 @@ private fun isDateValid(dateStr: String): Boolean {
     return try {
         val sdf = SimpleDateFormat("dd/MM/yyyy")
         sdf.isLenient = false
-        val enteredDate = sdf.parse(dateStr)
+        val enteredDate = sdf.parse(dateStr) ?: return false
 
         val calendar = Calendar.getInstance()
         calendar.set(Calendar.HOUR_OF_DAY, 0); calendar.set(Calendar.MINUTE, 0); calendar.set(Calendar.SECOND, 0); calendar.set(Calendar.MILLISECOND, 0)
@@ -167,7 +167,7 @@ fun PedidoScreen(
 
 @Composable
 private fun DeliverySummary(subtotal: Double, shippingCost: Double, isHomeDelivery: Boolean) {
-    Divider(modifier = Modifier.padding(vertical = 8.dp))
+    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Text("Subtotal", fontWeight = FontWeight.SemiBold)
         Text("$${subtotal.toInt()} CLP", fontWeight = FontWeight.SemiBold)
@@ -178,7 +178,7 @@ private fun DeliverySummary(subtotal: Double, shippingCost: Double, isHomeDelive
             Text("$${shippingCost.toInt()} CLP")
         }
     }
-    Divider(modifier = Modifier.padding(vertical = 8.dp))
+    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         val totalAmount = subtotal + if(isHomeDelivery) shippingCost else 0.0
         Text("Total", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)

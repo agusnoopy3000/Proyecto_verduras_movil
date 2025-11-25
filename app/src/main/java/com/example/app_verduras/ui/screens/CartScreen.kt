@@ -98,7 +98,7 @@ fun FullCartView(
 
         // --- Subtotal y Botón para continuar ---
         Column(horizontalAlignment = Alignment.End, modifier = Modifier.fillMaxWidth()) {
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
             Text(
                 "Subtotal: $${cartState.total.toInt()} CLP",

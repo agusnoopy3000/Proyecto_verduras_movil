@@ -6,6 +6,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -41,7 +43,7 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector?
     object WelcomeUser : Screen("welcome_user", "Bienvenido")
     object WelcomeAdmin : Screen("welcome_admin", "Bienvenido Admin")
     object Home : Screen("home", "Inicio", Icons.Default.Home)
-    object Catalog : Screen("catalog", "Catálogo", Icons.Default.List)
+    object Catalog : Screen("catalog", "Catálogo", Icons.AutoMirrored.Filled.List)
     object Cart : Screen("cart", "Carrito", Icons.Default.ShoppingCart)
     object Pedido : Screen("pedido", "Resumen del Pedido")
     object QRScanner : Screen("qr_scanner", "QR", Icons.Filled.QrCodeScanner)
@@ -110,7 +112,7 @@ fun HuertoHogarApp() {
                                 launchSingleTop = true
                             }
                         }) {
-                            Icon(Icons.Filled.ExitToApp, contentDescription = "Cerrar Sesión")
+                            Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Cerrar Sesión")
                         }
                     }
                 )
