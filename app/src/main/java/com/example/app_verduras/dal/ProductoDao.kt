@@ -10,15 +10,15 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ProductoDao {
-    // --- NUEVA --- Devuelve un Flow para actualizaciones en vivo
+    // --- Devuelve un Flow para actualizaciones en vivo
     @Query("SELECT * FROM productos")
     fun getAllProductsFlow(): Flow<List<Producto>>
 
-    // --- NUEVA --- Cuenta el total de productos
+    // --- Cuenta el total de productos
     @Query("SELECT COUNT(*) FROM productos")
     suspend fun count(): Int
 
-    // --- NUEVA --- Inserta una lista de productos
+    // --- Inserta una lista de productos
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(productos: List<Producto>)
 
@@ -31,12 +31,22 @@ interface ProductoDao {
     @Query("SELECT * FROM productos WHERE codigo = :codigo LIMIT 1")
     suspend fun getProductByCode(codigo: String): Producto?
 
+    @Query("SELECT * FROM productos WHERE codigo = :codigo LIMIT 1")
+    suspend fun getProductByCodigo(codigo: String): Producto?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProduct(producto: Producto)
 
     @Query("DELETE FROM productos")
     suspend fun clearAll()
 
+    @Query("DELETE FROM productos")
+    suspend fun deleteAll()
+
     @Update
     suspend fun update(product: Producto)
+
+    // Búsqueda por nombre o descripción
+    @Query("SELECT * FROM productos WHERE nombre LIKE :query OR descripcion LIKE :query")
+    suspend fun searchProducts(query: String): List<Producto>
 }

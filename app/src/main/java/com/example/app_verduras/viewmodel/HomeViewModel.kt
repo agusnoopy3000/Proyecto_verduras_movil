@@ -17,7 +17,7 @@ class HomeViewModel(private val productoRepository: ProductoRepository) : ViewMo
     init {
         productoRepository.getAll()
             .onEach { products ->
-                _categories.value = products.map { it.categoria }.distinct().sorted()
+                _categories.value = products.mapNotNull { it.categoria }.distinct().sorted()
             }
             .launchIn(viewModelScope)
     }

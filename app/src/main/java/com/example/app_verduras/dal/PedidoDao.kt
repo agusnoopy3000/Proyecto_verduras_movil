@@ -16,21 +16,27 @@ interface PedidoDao {
     suspend fun insert(pedido: Pedido)
 
     @Query("SELECT * FROM pedidos WHERE id = :pedidoId")
-    suspend fun getPedidoById(pedidoId: Int): Pedido?
+    suspend fun getPedidoById(pedidoId: Long): Pedido?
 
-    @Query("SELECT * FROM pedidos WHERE userEmail = :userEmail ORDER BY fechaEntrega DESC")
+    @Query("SELECT * FROM pedidos WHERE userEmail = :userEmail ORDER BY createdAt DESC")
     suspend fun getPedidosByUserEmail(userEmail: String): List<Pedido>
 
     // Función que devuelve un Flow para observar cambios en tiempo real.
-    @Query("SELECT * FROM pedidos ORDER BY fechaEntrega DESC")
+    @Query("SELECT * FROM pedidos ORDER BY createdAt DESC")
     fun obtenerTodosLosPedidosFlow(): Flow<List<Pedido>>
+
+    @Query("SELECT * FROM pedidos WHERE userEmail = :userEmail ORDER BY createdAt DESC")
+    fun getPedidosByUserEmailFlow(userEmail: String): Flow<List<Pedido>>
 
     @Update
     suspend fun update(pedido: Pedido)
 
     @Query("UPDATE pedidos SET estado = :nuevoEstado WHERE id = :pedidoId")
-    suspend fun updatePedidoStatus(pedidoId: Int, nuevoEstado: String)
+    suspend fun updatePedidoStatus(pedidoId: Long, nuevoEstado: String)
 
     @Delete
     suspend fun delete(pedido: Pedido)
+
+    @Query("DELETE FROM pedidos")
+    suspend fun deleteAll()
 }

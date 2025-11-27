@@ -18,17 +18,24 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.*
 import com.example.app_verduras.api.RetrofitClient
+import com.example.app_verduras.api.TokenManager
 import com.example.app_verduras.dal.AppDatabase
 import com.example.app_verduras.repository.DocumentoRepository
 import com.example.app_verduras.repository.PedidoRepository
 import com.example.app_verduras.repository.ProductoRepository
 import com.example.app_verduras.repository.UserRepository
 import com.example.app_verduras.ui.screens.*
+import com.example.app_verduras.util.SessionManager
 import com.example.app_verduras.viewmodel.*
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Inicializar TokenManager y SessionManager
+        TokenManager.init(this)
+        SessionManager.init(this)
+        
         setContent {
             HuertoHogarApp()
         }
@@ -47,6 +54,7 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector?
     object Catalog : Screen("catalog", "Catálogo", Icons.Default.List)
     object Cart : Screen("cart", "Carrito", Icons.Default.ShoppingCart)
     object Pedido : Screen("pedido", "Resumen del Pedido")
+    object MyOrders : Screen("my_orders", "Mis Pedidos", Icons.Default.Receipt)
     object QRScanner : Screen("qr_scanner", "QR", Icons.Filled.QrCodeScanner)
     object Confirmation : Screen("confirmation", "Confirmación")
     object AdminPanel : Screen("admin_panel", "Panel de Administrador")
@@ -97,11 +105,12 @@ fun HuertoHogarApp() {
         Screen.OrderManagement.route,
         Screen.DocumentManagement.route,
         Screen.Confirmation.route,
-        Screen.Pedido.route
+        Screen.Pedido.route,
+        Screen.MyOrders.route
     )
     val showBars = currentRoute !in screensWithoutBars
 
-    val bottomBarItems = listOf(Screen.Home, Screen.Catalog, Screen.Cart, Screen.QRScanner)
+    val bottomBarItems = listOf(Screen.Home, Screen.Catalog, Screen.Cart, Screen.MyOrders)
 
 
     Scaffold(
@@ -288,6 +297,13 @@ fun HuertoHogarApp() {
                  QRScannerScreen(onQrCodeScanned = {
                      navController.popBackStack()
                  })
+            }
+
+            composable(Screen.MyOrders.route) {
+                MyOrdersScreen(
+                    navController = navController,
+                    cartViewModel = cartViewModel
+                )
             }
 
             composable(Screen.DocumentManagement.route) {

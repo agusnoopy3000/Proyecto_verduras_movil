@@ -29,7 +29,7 @@ class CatalogViewModel(private val repository: ProductoRepository) : ViewModel()
         _search,
         _selectedCategory
     ) { products, searchQuery, category ->
-        val categories = products.map { it.categoria }.distinct().sorted()
+        val categories = products.mapNotNull { it.categoria }.distinct().sorted()
         val filteredProducts = products.filter { p ->
             (category == null || p.categoria == category) &&
                     (searchQuery.isEmpty() || p.nombre.contains(searchQuery, ignoreCase = true))
