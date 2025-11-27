@@ -58,8 +58,8 @@ fun PedidoScreen(
     val cartState by cartViewModel.cartState.collectAsState()
     val orderState by cartViewModel.orderProcessingState.collectAsState()
     val shippingCost by locationViewModel.shippingCost.collectAsState()
-    val userAddress by cartViewModel.userAddress.collectAsState()
-    val isHomeDelivery by locationViewModel.locationEnabled // <-- Usamos el estado del ViewModel
+    val locationAddress by locationViewModel.userAddress.collectAsState() // <-- Observa la dirección desde el LocationViewModel
+    val isHomeDelivery by locationViewModel.locationEnabled
 
     var deliveryAddress by remember { mutableStateOf("") }
     var deliveryDate by remember { mutableStateOf("") }
@@ -73,15 +73,15 @@ fun PedidoScreen(
 
     // --- Effects ---
     LaunchedEffect(Unit) {
-        // Calcula el costo de envío inicial al entrar a la pantalla
         if (isHomeDelivery) {
             locationViewModel.getDeviceLocation(context)
         }
     }
 
-    LaunchedEffect(userAddress, isHomeDelivery) {
-        if (isHomeDelivery && userAddress != null) {
-            deliveryAddress = userAddress!!
+    // Actualiza el campo de texto de la dirección cuando se obtiene la dirección del ViewModel
+    LaunchedEffect(locationAddress, isHomeDelivery) {
+        if (isHomeDelivery && locationAddress != null) {
+            deliveryAddress = locationAddress!!
         } else if (!isHomeDelivery) {
             deliveryAddress = ""
         }
@@ -125,7 +125,7 @@ fun PedidoScreen(
                     Spacer(Modifier.width(8.dp))
                     Switch(
                         checked = isHomeDelivery,
-                        onCheckedChange = { locationViewModel.setLocationEnabled(it, context) } // <-- Conectado al ViewModel
+                        onCheckedChange = { locationViewModel.setLocationEnabled(it, context) }
                     )
                 }
             }
@@ -192,10 +192,7 @@ private fun HomeDeliverySection(address: String, onAddressChange: (String) -> Un
     val context = LocalContext.current
     val locationPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
         if (permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false)) {
-            val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                if (location != null) onAddressChange("Lat: ${location.latitude}, Lon: ${location.longitude}")
-            }
+            locationViewModel.getDeviceLocation(context)
         }
     }
 
@@ -207,10 +204,7 @@ private fun HomeDeliverySection(address: String, onAddressChange: (String) -> Un
         trailingIcon = {
             IconButton(onClick = {
                 if (locationViewModel.hasLocationPermission(context)) {
-                    val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-                    fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                        if (location != null) onAddressChange("Lat: ${location.latitude}, Lon: ${location.longitude}")
-                    }
+                    locationViewModel.getDeviceLocation(context)
                 } else {
                     locationPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
                 }
