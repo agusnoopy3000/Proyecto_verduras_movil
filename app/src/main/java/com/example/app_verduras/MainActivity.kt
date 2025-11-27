@@ -54,7 +54,7 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector?
     object Catalog : Screen("catalog", "Catálogo", Icons.Default.List)
     object Cart : Screen("cart", "Carrito", Icons.Default.ShoppingCart)
     object Pedido : Screen("pedido", "Resumen del Pedido")
-    object MyOrders : Screen("my_orders", "Mis Pedidos", Icons.Default.Receipt)
+    object MyOrders : Screen("my_orders", "Pedidos", Icons.Default.Receipt)
     object QRScanner : Screen("qr_scanner", "QR", Icons.Filled.QrCodeScanner)
     object Confirmation : Screen("confirmation", "Confirmación")
     object AdminPanel : Screen("admin_panel", "Panel de Administrador")
@@ -92,6 +92,7 @@ fun HuertoHogarApp() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    // Pantallas sin barra de navegación
     val screensWithoutBars = listOf(
         Screen.Splash.route,
         Screen.Login.route,
@@ -105,18 +106,17 @@ fun HuertoHogarApp() {
         Screen.OrderManagement.route,
         Screen.DocumentManagement.route,
         Screen.Confirmation.route,
-        Screen.Pedido.route,
-        Screen.MyOrders.route
+        Screen.Pedido.route
     )
     val showBars = currentRoute !in screensWithoutBars
 
-    val bottomBarItems = listOf(Screen.Home, Screen.Catalog, Screen.Cart, Screen.MyOrders)
-
+    // Menú del usuario: Home, Catálogo, Carrito, Mis Pedidos, QR Scanner
+    val bottomBarItems = listOf(Screen.Home, Screen.Catalog, Screen.Cart, Screen.MyOrders, Screen.QRScanner)
 
     Scaffold(
         topBar = {
             if (showBars) {
-                 val currentScreen = bottomBarItems.find { it.route == currentRoute }
+                val currentScreen = bottomBarItems.find { it.route == currentRoute }
                 TopAppBar(
                     title = { Text(currentScreen?.label ?: "Huerto Hogar") },
                     actions = {
@@ -245,6 +245,25 @@ fun HuertoHogarApp() {
                     }
                 )
             }
+            
+            composable(Screen.QRScanner.route) {
+                QRScannerScreen(
+                    onQrCodeScanned = { qrCode ->
+                        // Cuando se escanea un QR, navegar al catálogo o mostrar el producto
+                        navController.navigate(Screen.Catalog.route)
+                    },
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(Screen.MyOrders.route) {
+                MyOrdersScreen(
+                    navController = navController,
+                    cartViewModel = cartViewModel
+                )
+            }
 
             val onLogout = {
                 authViewModel.logout()
@@ -290,19 +309,6 @@ fun HuertoHogarApp() {
                     viewModel = orderManagementVM,
                     onNavigateBack = { navController.popBackStack() },
                     onLogout = onLogout
-                )
-            }
-
-            composable(Screen.QRScanner.route) {
-                 QRScannerScreen(onQrCodeScanned = {
-                     navController.popBackStack()
-                 })
-            }
-
-            composable(Screen.MyOrders.route) {
-                MyOrdersScreen(
-                    navController = navController,
-                    cartViewModel = cartViewModel
                 )
             }
 

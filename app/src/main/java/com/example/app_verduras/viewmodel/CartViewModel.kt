@@ -188,6 +188,9 @@ class CartViewModel(
                     // Limpiar carrito
                     _cartState.value = CartState()
                     
+                    // Simular tiempo de procesamiento de pasarela de pago (3 segundos)
+                    delay(3000L)
+                    
                     _orderProcessingState.value = OrderProcessingState.Success(orderResponse)
                     
                     delay(100L)

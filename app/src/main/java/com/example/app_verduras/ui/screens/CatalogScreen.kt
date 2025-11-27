@@ -54,7 +54,7 @@ fun CatalogScreen(viewModel: CatalogViewModel, cartViewModel: CartViewModel) {
                 )
             )
     ) {
-        // Header con título y contador del carrito
+        // Header con contador del carrito
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -62,19 +62,11 @@ fun CatalogScreen(viewModel: CatalogViewModel, cartViewModel: CartViewModel) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column {
-                Text(
-                    "Nuestro Catálogo",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = HuertoHogarColors.Primary
-                )
-                Text(
-                    "${state.filteredProducts.size} productos disponibles",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = HuertoHogarColors.TextSecondary
-                )
-            }
+            Text(
+                "${state.filteredProducts.size} productos disponibles",
+                style = MaterialTheme.typography.bodyMedium,
+                color = HuertoHogarColors.TextSecondary
+            )
             
             // Badge del carrito
             if (cartState.items.isNotEmpty()) {

@@ -21,7 +21,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.app_verduras.R
-import com.example.app_verduras.ui.components.AppFooter
 import com.example.app_verduras.ui.components.WeatherWidget
 import com.example.app_verduras.viewmodel.HomeViewModel
 import com.example.app_verduras.viewmodel.WeatherViewModel
@@ -152,9 +151,6 @@ fun HomeScreen(
                 }
             }
         }
-
-        // Footer
-        AppFooter()
     }
 }
 

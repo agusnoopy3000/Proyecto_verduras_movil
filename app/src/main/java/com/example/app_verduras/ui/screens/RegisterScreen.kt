@@ -43,6 +43,34 @@ fun RegisterScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var termsAccepted by remember { mutableStateOf(false) }
 
+    // Estados de validación en tiempo real
+    val isRunValid by remember(run) { 
+        derivedStateOf { 
+            run.isEmpty() || run.matches(Regex("^\\d{1,2}\\.?\\d{3}\\.?\\d{3}-?[\\dkK]$"))
+        }
+    }
+    val isEmailValid by remember(email) { 
+        derivedStateOf { 
+            email.isEmpty() || android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+        }
+    }
+    val isPasswordValid by remember(password) { 
+        derivedStateOf { 
+            password.isEmpty() || (password.length >= 8 && password.any { !it.isLetterOrDigit() })
+        }
+    }
+    val isNombreValid by remember(nombre) { 
+        derivedStateOf { nombre.isEmpty() || nombre.length >= 2 }
+    }
+    val isApellidosValid by remember(apellidos) { 
+        derivedStateOf { apellidos.isEmpty() || apellidos.length >= 2 }
+    }
+    val isTelefonoValid by remember(telefono) {
+        derivedStateOf { 
+            telefono.isEmpty() || telefono.matches(Regex("^\\+?\\d{8,15}$"))
+        }
+    }
+
     val authState by authViewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -154,7 +182,9 @@ fun RegisterScreen(
                             label = "RUT",
                             placeholder = "19.011.022-K",
                             leadingIcon = Icons.Default.Badge,
-                            supportingText = "Formato: XX.XXX.XXX-X"
+                            supportingText = "Formato: XX.XXX.XXX-X",
+                            isError = run.isNotEmpty() && !isRunValid,
+                            errorText = "Formato de RUT inválido"
                         )
 
                         Row(
@@ -167,7 +197,9 @@ fun RegisterScreen(
                                 label = "Nombre",
                                 placeholder = "Juan",
                                 leadingIcon = Icons.Default.Person,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                isError = nombre.isNotEmpty() && !isNombreValid,
+                                errorText = "Mínimo 2 caracteres"
                             )
                             StyledTextField(
                                 value = apellidos,
@@ -175,7 +207,9 @@ fun RegisterScreen(
                                 label = "Apellidos",
                                 placeholder = "Pérez",
                                 leadingIcon = Icons.Default.People,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                isError = apellidos.isNotEmpty() && !isApellidosValid,
+                                errorText = "Mínimo 2 caracteres"
                             )
                         }
 
@@ -193,7 +227,9 @@ fun RegisterScreen(
                             label = "Correo electrónico",
                             placeholder = "ejemplo@email.com",
                             leadingIcon = Icons.Default.Email,
-                            keyboardType = KeyboardType.Email
+                            keyboardType = KeyboardType.Email,
+                            isError = email.isNotEmpty() && !isEmailValid,
+                            errorText = "Correo electrónico inválido"
                         )
 
                         OutlinedTextField(
@@ -202,7 +238,14 @@ fun RegisterScreen(
                             label = { Text("Contraseña") },
                             placeholder = { Text("Mín. 8 caracteres") },
                             leadingIcon = {
-                                Icon(Icons.Default.Lock, null, tint = MaterialTheme.colorScheme.primary)
+                                Icon(
+                                    Icons.Default.Lock, 
+                                    null, 
+                                    tint = if (password.isNotEmpty() && !isPasswordValid) 
+                                        MaterialTheme.colorScheme.error 
+                                    else 
+                                        MaterialTheme.colorScheme.primary
+                                )
                             },
                             trailingIcon = {
                                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
@@ -218,16 +261,31 @@ fun RegisterScreen(
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
                             shape = RoundedCornerShape(14.dp),
+                            isError = password.isNotEmpty() && !isPasswordValid,
                             supportingText = {
-                                Text(
-                                    "Mín. 8 caracteres + 1 especial (!@#\$...)",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                                if (password.isNotEmpty() && !isPasswordValid) {
+                                    Text(
+                                        "Requiere mín. 8 caracteres y 1 especial (!@#\$...)",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                } else {
+                                    Text(
+                                        "Mín. 8 caracteres + 1 especial (!@#\$...)",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                             },
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                                focusedBorderColor = if (password.isNotEmpty() && !isPasswordValid) 
+                                    MaterialTheme.colorScheme.error 
+                                else 
+                                    MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = if (password.isNotEmpty() && !isPasswordValid) 
+                                    MaterialTheme.colorScheme.error.copy(alpha = 0.5f) 
+                                else 
+                                    MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
                             )
                         )
 
@@ -253,7 +311,9 @@ fun RegisterScreen(
                             label = "Teléfono",
                             placeholder = "+56912345678",
                             leadingIcon = Icons.Default.Phone,
-                            keyboardType = KeyboardType.Phone
+                            keyboardType = KeyboardType.Phone,
+                            isError = telefono.isNotEmpty() && !isTelefonoValid,
+                            errorText = "Formato: +56912345678"
                         )
                     }
                 }
@@ -309,7 +369,10 @@ fun RegisterScreen(
                         .height(56.dp),
                     enabled = !authState.isLoading && termsAccepted && 
                               run.isNotBlank() && nombre.isNotBlank() && 
-                              apellidos.isNotBlank() && email.isNotBlank() && password.isNotBlank(),
+                              apellidos.isNotBlank() && email.isNotBlank() && password.isNotBlank() &&
+                              isRunValid && isEmailValid && isPasswordValid && 
+                              isNombreValid && isApellidosValid && 
+                              (telefono.isEmpty() || isTelefonoValid),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
@@ -395,7 +458,9 @@ private fun StyledTextField(
     leadingIcon: ImageVector,
     modifier: Modifier = Modifier,
     keyboardType: KeyboardType = KeyboardType.Text,
-    supportingText: String? = null
+    supportingText: String? = null,
+    isError: Boolean = false,
+    errorText: String? = null
 ) {
     OutlinedTextField(
         value = value,
@@ -403,24 +468,30 @@ private fun StyledTextField(
         label = { Text(label) },
         placeholder = { Text(placeholder) },
         leadingIcon = {
-            Icon(leadingIcon, null, tint = MaterialTheme.colorScheme.primary)
+            Icon(leadingIcon, null, tint = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary)
         },
         modifier = modifier.fillMaxWidth(),
         singleLine = true,
         shape = RoundedCornerShape(14.dp),
+        isError = isError,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        supportingText = supportingText?.let {
-            {
-                Text(
-                    it,
+        supportingText = {
+            when {
+                isError && errorText != null -> Text(
+                    errorText,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+                supportingText != null -> Text(
+                    supportingText,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         },
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+            focusedBorderColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = if (isError) MaterialTheme.colorScheme.error.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
         )
     )
 }
