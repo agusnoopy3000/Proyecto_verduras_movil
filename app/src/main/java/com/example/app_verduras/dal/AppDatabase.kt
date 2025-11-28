@@ -11,7 +11,7 @@ import com.example.app_verduras.Model.User
 
 @Database(
     entities = [User::class, Pedido::class, Producto::class, Documento::class],
-    version = 5, // Incrementamos la versión por añadir la tabla Documento
+    version = 6, // Incrementamos la versión por cambios en los modelos para API Huerto Hogar
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

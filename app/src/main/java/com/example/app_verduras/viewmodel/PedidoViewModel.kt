@@ -49,7 +49,7 @@ class PedidoViewModel(private val repository: PedidoRepository) : ViewModel() {
         }
     }
 
-    fun actualizarEstado(id: Int, nuevoEstado: String) {
+    fun actualizarEstado(id: Long, nuevoEstado: String) {
         viewModelScope.launch {
             try {
                 repository.updatePedidoStatus(id, nuevoEstado) // Corregido

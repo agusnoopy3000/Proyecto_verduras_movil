@@ -149,7 +149,16 @@ fun PedidoScreen(
 
             item {
                 Button(
-                    onClick = { cartViewModel.confirmOrder(finalAddress!!, deliveryDate, totalAmount) },
+                    onClick = { 
+                        cartViewModel.confirmOrder(
+                            deliveryAddress = finalAddress!!,
+                            deliveryDate = deliveryDate,
+                            finalTotal = totalAmount,
+                            region = if (isHomeDelivery) "Región Metropolitana" else null,
+                            comuna = null,
+                            comentarios = null
+                        )
+                    },
                     enabled = isReadyToOrder,
                     modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
                 ) {

@@ -3,11 +3,22 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("com.google.gms.google-services")
 }
 
 android {
     namespace = "com.example.app_verduras"
     compileSdk = 34
+
+    // Configuración de firma para APK de release
+    signingConfigs {
+        create("release") {
+            storeFile = file("huerto-hogar.jks")
+            storePassword = "HuertoHogar2024"
+            keyAlias = "huerto-hogar"
+            keyPassword = "HuertoHogar2024"
+        }
+    }
 
     defaultConfig {
         applicationId = "com.example.app_verduras"
@@ -25,6 +36,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -88,6 +100,10 @@ dependencies {
     // Retrofit para networking
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    
+    // OkHttp para interceptores y logging
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
     // AWS SDK para S3
     implementation("com.amazonaws:aws-android-sdk-s3:2.77.0")
@@ -99,15 +115,29 @@ dependencies {
     implementation("androidx.camera:camera-lifecycle:1.3.4")
     implementation("androidx.camera:camera-view:1.3.4")
 
+    // Guava para ListenableFuture (requerido por CameraX)
+    implementation("com.google.guava:guava:32.1.3-android")
+
     // ML Kit para escanear códigos de barras
     implementation("com.google.mlkit:barcode-scanning:17.2.0")
 
-    // Dependencias de prueba
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("org.mockito:mockito-core:4.5.1") // <-- AÑADIDO
-    testImplementation("androidx.arch.core:core-testing:2.2.0")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.1")
+    // Google Play Services para Ubicación
+    implementation("com.google.android.gms:play-services-location:21.3.0")
 
+    // Firebase - Autenticación Híbrida
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")
+
+    // Testing
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.mockito:mockito-core:5.11.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
+    testImplementation("app.cash.turbine:turbine:1.0.0")
+    
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
     androidTestImplementation(platform("androidx.compose:compose-bom:2024.06.00"))

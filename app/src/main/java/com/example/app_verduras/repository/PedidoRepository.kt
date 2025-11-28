@@ -25,7 +25,7 @@ class PedidoRepository(private val pedidoDao: PedidoDao) {
     }
 
     // Actualizar solo el estado de un pedido (usado por el Admin).
-    suspend fun updatePedidoStatus(id: Int, nuevoEstado: String) {
+    suspend fun updatePedidoStatus(id: Long, nuevoEstado: String) {
         pedidoDao.updatePedidoStatus(id, nuevoEstado)
     }
 
