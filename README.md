@@ -23,8 +23,8 @@ Aplicación móvil Android para la venta de productos orgánicos y hortalizas fr
 | Nombre | Rol |
 |--------|-----|
 | Agustín Garrido | Desarrollador Full Stack |
-| [Agregar Integrante 2] | [Rol] |
-| [Agregar Integrante 3] | [Rol] |
+
+> **Última actualización:** 28 de Noviembre de 2025
 
 ---
 
@@ -220,7 +220,6 @@ app/huerto-hogar.jks
 ```bash
 git clone https://github.com/agusnoopy3000/Proyecto_verduras_movil.git
 cd Proyecto_verduras_movil
-git checkout ramaLocal
 ```
 
 2. **Abrir en Android Studio**
@@ -229,9 +228,12 @@ git checkout ramaLocal
    - Esperar a que Gradle sincronice las dependencias
 
 3. **Configurar Firebase** (⚠️ IMPORTANTE)
-   - Descargar `google-services.json` desde [Firebase Console](https://console.firebase.google.com)
+   - Ir a [Firebase Console](https://console.firebase.google.com)
+   - Seleccionar el proyecto `huerto-hogar-cbe8d`
+   - Descargar `google-services.json`
    - Colocar el archivo en la carpeta `app/`
    - **Nota**: Este archivo NO está en el repositorio por seguridad
+   - Puedes usar `app/google-services.json.example` como referencia
 
 4. **Ejecutar la aplicación**
 ```bash
