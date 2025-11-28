@@ -1,0 +1,345 @@
+{
+  "info": {
+    "name": "Huerto Hogar API - Pruebas",
+    "description": "Colección de endpoints para probar la API de Huerto Hogar\n\nBase URL: http://52.2.172.54:8080/api/v1/\nSwagger: http://52.2.172.54:8080/swagger-ui/index.html",
+    "version": "1.0.0"
+  },
+  "baseUrl": "http://52.2.172.54:8080/api/v1",
+  
+  "endpoints": {
+    
+    "========== AUTENTICACIÓN ==========": "Endpoints de login, registro y sincronización Firebase",
+    
+    "1_LOGIN": {
+      "description": "Iniciar sesión con email y contraseña",
+      "method": "POST",
+      "url": "http://52.2.172.54:8080/api/v1/auth/login",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "email": "cliente@huertohogar.cl",
+        "password": "Cliente123!"
+      },
+      "response_esperada": {
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+        "user": {
+          "email": "cliente@huertohogar.cl",
+          "nombre": "Juan",
+          "apellido": "Pérez",
+          "rol": "CLIENTE"
+        }
+      },
+      "notas": "El token JWT retornado debe usarse en las demás peticiones"
+    },
+
+    "1_LOGIN_ADMIN": {
+      "description": "Iniciar sesión como administrador",
+      "method": "POST",
+      "url": "http://52.2.172.54:8080/api/v1/auth/login",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "email": "admin@huertohogar.cl",
+        "password": "Admin123!"
+      },
+      "response_esperada": {
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+        "user": {
+          "email": "admin@huertohogar.cl",
+          "nombre": "Administrador",
+          "apellido": "Sistema",
+          "rol": "ADMIN"
+        }
+      }
+    },
+
+    "2_REGISTRO": {
+      "description": "Registrar nuevo usuario",
+      "method": "POST",
+      "url": "http://52.2.172.54:8080/api/v1/auth/register",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "run": "12345678-9",
+        "nombre": "María",
+        "apellidos": "González López",
+        "email": "maria.gonzalez@test.cl",
+        "password": "MiPassword123!",
+        "direccion": "Av. Providencia 1234, Santiago",
+        "telefono": "+56912345678"
+      },
+      "response_esperada": {
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+        "user": {
+          "email": "maria.gonzalez@test.cl",
+          "nombre": "María",
+          "apellido": "González López",
+          "rol": "CLIENTE"
+        }
+      },
+      "notas": "El RUN debe ser único. El email también debe ser único."
+    },
+
+    "3_FIREBASE_SYNC": {
+      "description": "Sincronización con Firebase (Autenticación Híbrida)",
+      "method": "POST",
+      "url": "http://52.2.172.54:8080/api/v1/auth/firebase-sync",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "firebaseIdToken": "eyJhbGciOiJSUzI1NiIsImtpZCI6Ij...(token de Firebase)",
+        "run": "98765432-1",
+        "nombre": "Carlos",
+        "apellidos": "Rodríguez",
+        "direccion": "Las Condes 567",
+        "telefono": "+56987654321"
+      },
+      "notas": "El firebaseIdToken se obtiene después de autenticarse con Google Sign-In en Firebase"
+    },
+
+    "========== PRODUCTOS ==========": "Endpoints para gestión de productos",
+
+    "4_GET_PRODUCTOS": {
+      "description": "Obtener lista de todos los productos",
+      "method": "GET",
+      "url": "http://52.2.172.54:8080/api/v1/products",
+      "headers": {
+        "Authorization": "Bearer {{TOKEN}}",
+        "Content-Type": "application/json"
+      },
+      "response_esperada": [
+        {
+          "id": "prod-001",
+          "codigo": "VER-001",
+          "nombre": "Tomates Orgánicos",
+          "descripcion": "Tomates frescos cultivados sin pesticidas",
+          "categoria": "Verduras",
+          "precio": 2500,
+          "stock": 50,
+          "imagen": "https://ejemplo.com/tomates.jpg"
+        },
+        {
+          "id": "prod-002",
+          "codigo": "FRU-001",
+          "nombre": "Manzanas Rojas",
+          "descripcion": "Manzanas frescas de la zona central",
+          "categoria": "Frutas",
+          "precio": 1800,
+          "stock": 100,
+          "imagen": "https://ejemplo.com/manzanas.jpg"
+        }
+      ]
+    },
+
+    "4_GET_PRODUCTOS_BUSQUEDA": {
+      "description": "Buscar productos por nombre o descripción",
+      "method": "GET",
+      "url": "http://52.2.172.54:8080/api/v1/products?q=tomate",
+      "headers": {
+        "Authorization": "Bearer {{TOKEN}}",
+        "Content-Type": "application/json"
+      },
+      "notas": "El parámetro 'q' permite buscar productos"
+    },
+
+    "5_GET_PRODUCTO_BY_ID": {
+      "description": "Obtener producto por ID",
+      "method": "GET",
+      "url": "http://52.2.172.54:8080/api/v1/products/prod-001",
+      "headers": {
+        "Authorization": "Bearer {{TOKEN}}",
+        "Content-Type": "application/json"
+      }
+    },
+
+    "6_GET_PRODUCTO_BY_CODIGO": {
+      "description": "Obtener producto por código (útil para QR Scanner)",
+      "method": "GET",
+      "url": "http://52.2.172.54:8080/api/v1/products/codigo/VER-001",
+      "headers": {
+        "Authorization": "Bearer {{TOKEN}}",
+        "Content-Type": "application/json"
+      },
+      "notas": "Este endpoint se usa cuando escaneas un código QR de producto"
+    },
+
+    "========== PEDIDOS ==========": "Endpoints para gestión de pedidos",
+
+    "7_CREAR_PEDIDO": {
+      "description": "Crear un nuevo pedido",
+      "method": "POST",
+      "url": "http://52.2.172.54:8080/api/v1/orders",
+      "headers": {
+        "Authorization": "Bearer {{TOKEN}}",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "items": [
+          {
+            "productoId": "prod-001",
+            "cantidad": 2,
+            "precioUnitario": 2500
+          },
+          {
+            "productoId": "prod-002",
+            "cantidad": 3,
+            "precioUnitario": 1800
+          }
+        ],
+        "direccionEnvio": "Av. Providencia 1234, Depto 56, Santiago",
+        "metodoPago": "TRANSFERENCIA",
+        "notas": "Tocar timbre 2 veces"
+      },
+      "response_esperada": {
+        "id": 123,
+        "estado": "PENDIENTE",
+        "total": 10400,
+        "fechaCreacion": "2025-11-27T10:30:00",
+        "items": [
+          {
+            "productoId": "prod-001",
+            "cantidad": 2,
+            "subtotal": 5000
+          },
+          {
+            "productoId": "prod-002",
+            "cantidad": 3,
+            "subtotal": 5400
+          }
+        ]
+      }
+    },
+
+    "8_GET_MIS_PEDIDOS": {
+      "description": "Obtener mis pedidos (del usuario autenticado)",
+      "method": "GET",
+      "url": "http://52.2.172.54:8080/api/v1/orders",
+      "headers": {
+        "Authorization": "Bearer {{TOKEN}}",
+        "Content-Type": "application/json"
+      },
+      "response_esperada": [
+        {
+          "id": 123,
+          "estado": "PENDIENTE",
+          "total": 10400,
+          "fechaCreacion": "2025-11-27T10:30:00"
+        },
+        {
+          "id": 120,
+          "estado": "ENTREGADO",
+          "total": 5600,
+          "fechaCreacion": "2025-11-25T15:00:00"
+        }
+      ]
+    },
+
+    "9_GET_PEDIDO_BY_ID": {
+      "description": "Obtener detalle de un pedido específico",
+      "method": "GET",
+      "url": "http://52.2.172.54:8080/api/v1/orders/123",
+      "headers": {
+        "Authorization": "Bearer {{TOKEN}}",
+        "Content-Type": "application/json"
+      }
+    },
+
+    "========== USUARIO ==========": "Endpoints de perfil de usuario",
+
+    "10_GET_MI_PERFIL": {
+      "description": "Obtener perfil del usuario autenticado",
+      "method": "GET",
+      "url": "http://52.2.172.54:8080/api/v1/users/me",
+      "headers": {
+        "Authorization": "Bearer {{TOKEN}}",
+        "Content-Type": "application/json"
+      },
+      "response_esperada": {
+        "email": "cliente@huertohogar.cl",
+        "nombre": "Juan",
+        "apellido": "Pérez",
+        "run": "12345678-9",
+        "direccion": "Av. Principal 123",
+        "telefono": "+56912345678",
+        "rol": "CLIENTE",
+        "createdAt": "2025-01-15T10:00:00"
+      }
+    }
+  },
+
+  "usuarios_prueba": {
+    "descripcion": "Usuarios disponibles para pruebas en el sistema",
+    "usuarios": [
+      {
+        "rol": "USER",
+        "email": "prueba@test.cl",
+        "password": "Test123!",
+        "descripcion": "Usuario de prueba VERIFICADO - funciona correctamente",
+        "verificado": true
+      },
+      {
+        "rol": "ADMIN",
+        "email": "admin@huertohogar.cl",
+        "password": "Admin123!",
+        "descripcion": "Administrador del sistema (crear si no existe)"
+      },
+      {
+        "rol": "CLIENTE",
+        "email": "cliente@huertohogar.cl",
+        "password": "Cliente123!",
+        "descripcion": "Usuario cliente estándar (crear si no existe)"
+      }
+    ],
+    "nota": "Si un usuario no existe, usar el endpoint /auth/register para crearlo"
+  },
+
+  "estados_pedido": {
+    "descripcion": "Estados posibles de un pedido",
+    "estados": [
+      {
+        "codigo": "PENDIENTE",
+        "descripcion": "Pedido creado, esperando confirmación"
+      },
+      {
+        "codigo": "CONFIRMADO",
+        "descripcion": "Pedido confirmado, en preparación"
+      },
+      {
+        "codigo": "EN_CAMINO",
+        "descripcion": "Pedido en camino al cliente"
+      },
+      {
+        "codigo": "ENTREGADO",
+        "descripcion": "Pedido entregado exitosamente"
+      },
+      {
+        "codigo": "CANCELADO",
+        "descripcion": "Pedido cancelado"
+      }
+    ]
+  },
+
+  "instrucciones_uso": {
+    "paso_1": "Primero ejecuta el endpoint de LOGIN para obtener el token JWT",
+    "paso_2": "Copia el token de la respuesta",
+    "paso_3": "Reemplaza {{TOKEN}} en los headers de los demás endpoints",
+    "paso_4": "El token expira después de un tiempo, si recibes 401 vuelve a hacer login",
+    "nota_importante": "El header Authorization debe tener el formato: Bearer <token>"
+  },
+
+  "curl_examples": {
+    "descripcion": "Ejemplos de comandos cURL para probar desde terminal",
+    
+    "login": "curl -X POST http://52.2.172.54:8080/api/v1/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"cliente@huertohogar.cl\",\"password\":\"Cliente123!\"}'",
+    
+    "get_productos": "curl -X GET http://52.2.172.54:8080/api/v1/products -H 'Authorization: Bearer TU_TOKEN_AQUI' -H 'Content-Type: application/json'",
+    
+    "get_perfil": "curl -X GET http://52.2.172.54:8080/api/v1/users/me -H 'Authorization: Bearer TU_TOKEN_AQUI' -H 'Content-Type: application/json'",
+    
+    "crear_pedido": "curl -X POST http://52.2.172.54:8080/api/v1/orders -H 'Authorization: Bearer TU_TOKEN_AQUI' -H 'Content-Type: application/json' -d '{\"items\":[{\"productoId\":\"prod-001\",\"cantidad\":2,\"precioUnitario\":2500}],\"direccionEnvio\":\"Mi dirección\",\"metodoPago\":\"TRANSFERENCIA\"}'"
+  }
+}

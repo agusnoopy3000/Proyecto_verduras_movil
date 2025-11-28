@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "496024515668",
+    "project_id": "huerto-hogar-cbe8d",
+    "storage_bucket": "huerto-hogar-cbe8d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:496024515668:android:8a1ae356eb72f2c79169c1",
+        "android_client_info": {
+          "package_name": "com.example.app_verduras"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyASrOqW2fllNDIjJ055sDXWYMh8SIrY6PE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

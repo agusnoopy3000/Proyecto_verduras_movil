@@ -1,0 +1,74 @@
+[
+  {
+    "codigo": "V001",
+    "nombre": "Zanahoria orgánica",
+    "descripcion": "Zanahorias frescas y crujientes, cultivadas sin pesticidas.",
+    "categoria": "Verduras",
+    "precio": 750,
+    "stock": 50,
+    "img": "file:///android_asset/img/zanahoria.webp"
+  },
+  {
+    "codigo": "V002",
+    "nombre": "Tomate premium",
+    "descripcion": "Tomates rojos y jugosos, perfectos para ensaladas y salsas.",
+    "categoria": "Verduras",
+    "precio": 850,
+    "stock": 40,
+    "img": "file:///android_asset/img/Tomates.webp"
+  },
+  {
+    "codigo": "V003",
+    "nombre": "Lechuga fresca",
+    "descripcion": "Lechuga hidropónica, limpia y lista para consumir.",
+    "categoria": "Verduras",
+    "precio": 600,
+    "stock": 30,
+    "img": "file:///android_asset/img/lechuga-hidroponica.jpeg"
+  },
+  {
+    "codigo": "F001",
+    "nombre": "Manzana roja",
+    "descripcion": "Manzanas rojas dulces y jugosas, ideales para cualquier momento.",
+    "categoria": "Frutas",
+    "precio": 1200,
+    "stock": 100,
+    "img": "file:///android_asset/img/Manza_fuji.jpg"
+  },
+  {
+    "codigo": "F002",
+    "nombre": "Banana de Ecuador",
+    "descripcion": "Bananas maduras, fuente natural de potasio y energía.",
+    "categoria": "Frutas",
+    "precio": 950,
+    "stock": 80,
+    "img": "file:///android_asset/img/platano.webp"
+  },
+  {
+    "codigo": "L001",
+    "nombre": "Leche entera",
+    "descripcion": "Leche de vaca fresca y pasteurizada, formato 1L.",
+    "categoria": "Lácteos",
+    "precio": 1200,
+    "stock": 25,
+    "img": "file:///android_asset/img/leche_entera.webp"
+  },
+  {
+    "codigo": "H001",
+    "nombre": "Naranja",
+    "descripcion": "Naranjas Dulces.",
+    "categoria": "Frutas",
+    "precio": 2500,
+    "stock": 20,
+    "img": "file:///android_asset/img/naranja.webp"
+  },
+  {
+    "codigo": "C001",
+    "nombre": "Avena integral",
+    "descripcion": "Avena en hojuelas para un desayuno nutritivo y saludable.",
+    "categoria": "Cereales",
+    "precio": 1800,
+    "stock": 60,
+    "img": "file:///android_asset/img/Avena_integral.webp"
+  }
+]
