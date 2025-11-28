@@ -1,15 +1,15 @@
 package com.example.app_verduras.repository
 
 import android.content.res.AssetManager
+import android.util.Log
 import com.example.app_verduras.Model.Producto
 import com.example.app_verduras.api.ApiService
-import com.example.app_verduras.api.NetworkProducto
+import com.example.app_verduras.api.models.ProductResponse
 import com.example.app_verduras.dal.ProductoDao
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import java.io.InputStreamReader
 
@@ -37,7 +37,7 @@ class ProductoRepositoryImpl(
 
     override suspend fun getCategorias(): List<String> {
         return withContext(Dispatchers.IO) {
-            productoDao.getAllProductsFlow().first().map { it.categoria }.distinct()
+            productoDao.getDistinctCategorias()
         }
     }
 
@@ -72,11 +72,20 @@ class ProductoRepositoryImpl(
     override suspend fun refreshProductsFromNetwork() {
         withContext(Dispatchers.IO) {
             try {
-                val networkProducts = apiService.getProducts()
-                val localProducts = networkProducts.map { it.toLocalProducto() }
-                productoDao.insertAll(localProducts)
+                val response = apiService.getProducts()
+                if (response.isSuccessful) {
+                    val networkProducts = response.body()
+                    if (networkProducts != null) {
+                        val localProducts = networkProducts.map { it.toLocalProducto() }
+                        productoDao.insertAll(localProducts)
+                    } else {
+                        Log.e("ProductoRepositoryImpl", "La respuesta de la red fue exitosa pero el cuerpo es nulo.")
+                    }
+                } else {
+                    Log.e("ProductoRepositoryImpl", "Error en la respuesta de la red: ${response.errorBody()?.string()}")
+                }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("ProductoRepositoryImpl", "Excepción al refrescar los productos desde la red", e)
             }
         }
     }
@@ -86,20 +95,19 @@ class ProductoRepositoryImpl(
     }
 
     override suspend fun deleteAll() {
-
         productoDao.clearAll()
     }
-}
 
-fun NetworkProducto.toLocalProducto(): Producto {
-    return Producto(
-        id = this.id,
-        nombre = this.nombre,
-        precio = this.precio,
-        imagen = this.imagen,
-        categoria = this.categoria,
-        descripcion = "",
-        stock = 0,
-        codigo = ""
-    )
+    private fun ProductResponse.toLocalProducto(): Producto {
+        return Producto(
+            id = this.id,
+            nombre = this.nombre,
+            precio = this.precio,
+            imagen = this.imagen ?: "", // Mapeo correcto y manejo de nulos
+            categoria = this.categoria ?: "", // Mapeo correcto y manejo de nulos
+            descripcion = this.descripcion,
+            stock = this.stock,
+            codigo = this.codigo
+        )
+    }
 }

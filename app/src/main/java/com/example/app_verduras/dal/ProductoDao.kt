@@ -14,6 +14,10 @@ interface ProductoDao {
     @Query("SELECT * FROM productos")
     fun getAllProductsFlow(): Flow<List<Producto>>
 
+    // --- Devuelve las categorías únicas
+    @Query("SELECT DISTINCT categoria FROM productos")
+    suspend fun getDistinctCategorias(): List<String>
+
     // --- Cuenta el total de productos
     @Query("SELECT COUNT(*) FROM productos")
     suspend fun count(): Int
