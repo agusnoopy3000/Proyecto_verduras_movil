@@ -47,8 +47,9 @@ captures/
 .externalNativeBuild
 .cxx/
 
-# Google Services (secret)
-# google-services.json - KEEPING FOR PROJECT
+# Google Services (secret) - NO SUBIR A GIT
+google-services.json
+app/google-services.json
 
 # Version control
 vcs.xml

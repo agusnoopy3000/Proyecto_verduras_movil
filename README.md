@@ -228,9 +228,10 @@ git checkout ramaLocal
    - File → Open → Seleccionar la carpeta del proyecto
    - Esperar a que Gradle sincronice las dependencias
 
-3. **Configurar Firebase** (Ya incluido)
-   - El archivo `google-services.json` ya está en `app/`
-   - Las reglas de Firebase están configuradas
+3. **Configurar Firebase** (⚠️ IMPORTANTE)
+   - Descargar `google-services.json` desde [Firebase Console](https://console.firebase.google.com)
+   - Colocar el archivo en la carpeta `app/`
+   - **Nota**: Este archivo NO está en el repositorio por seguridad
 
 4. **Ejecutar la aplicación**
 ```bash
