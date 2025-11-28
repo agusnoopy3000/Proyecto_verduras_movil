@@ -10,31 +10,18 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.withContext
-import java.io.InputStreamReader
 
-class ProductoRepository(
-    private val productoDao: ProductoDao,
-    private val assets: AssetManager,
-    private val apiService: ApiService
-) {
+/**
+ * Interfaz que define el contrato para el repositorio de productos.
+ * Esto permite tener implementaciones falsas para pruebas y una real para la app.
+ */
+interface ProductoRepository {
 
-    // Clase temporal que representa la estructura del JSON local
-    private data class LocalJsonProducto(
-        val codigo: String,
-        val nombre: String,
-        val descripcion: String,
-        val categoria: String,
-        val precio: Double,
-        val stock: Int,
-        val img: String?
-    )
+    fun getAll(): Flow<List<Producto>>
 
-    fun getAll(): Flow<List<Producto>> = productoDao.getAllProductsFlow()
+    suspend fun getById(id: String): Producto?
 
-    suspend fun getById(id: String): Producto? {
-        return productoDao.getProductById(id)
-    }
+    suspend fun getCategorias(): List<String>
 
     suspend fun getByCodigo(codigo: String): Producto? {
         return productoDao.getProductByCodigo(codigo)

@@ -1,7 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("com.google.devtools.ksp")
+    id("kotlin-kapt")
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.gms.google-services")
 }
@@ -44,11 +44,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
@@ -70,11 +70,14 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
-    implementation("com.google.android.material:material:1.12.0")
+    implementation("com.google.android.material:material:1.13.0")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.navigation:navigation-compose:2.8.3")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
+
+    // Lottie for Compose
+    implementation("com.airbnb.android:lottie-compose:6.7.1")
 
     // Splash Screen API
     implementation("androidx.core:core-splashscreen:1.0.1")
@@ -88,7 +91,7 @@ dependencies {
     // Room para la base de datos local
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
-    ksp("androidx.room:room-compiler:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
@@ -102,12 +105,9 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
-    // AWS SDK - VOLVIENDO A LA VERSIÓN QUE FUNCIONABA
+    // AWS SDK para S3
     implementation("com.amazonaws:aws-android-sdk-s3:2.77.0")
     implementation("com.amazonaws:aws-android-sdk-core:2.77.0")
-
-    // Lottie para Animaciones
-    implementation("com.airbnb.android:lottie-compose:6.4.1")
 
     // CameraX para la cámara
     implementation("androidx.camera:camera-core:1.3.4")

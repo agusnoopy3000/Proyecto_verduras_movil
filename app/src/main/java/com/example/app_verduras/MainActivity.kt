@@ -6,6 +6,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -20,10 +22,7 @@ import androidx.navigation.compose.*
 import com.example.app_verduras.api.RetrofitClient
 import com.example.app_verduras.api.TokenManager
 import com.example.app_verduras.dal.AppDatabase
-import com.example.app_verduras.repository.DocumentoRepository
-import com.example.app_verduras.repository.PedidoRepository
-import com.example.app_verduras.repository.ProductoRepository
-import com.example.app_verduras.repository.UserRepository
+import com.example.app_verduras.repository.* // Importamos todo el paquete para incluir la Impl
 import com.example.app_verduras.ui.screens.*
 import com.example.app_verduras.util.SessionManager
 import com.example.app_verduras.viewmodel.*
@@ -51,7 +50,7 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector?
     object WelcomeUser : Screen("welcome_user", "Bienvenido")
     object WelcomeAdmin : Screen("welcome_admin", "Bienvenido Admin")
     object Home : Screen("home", "Inicio", Icons.Default.Home)
-    object Catalog : Screen("catalog", "Catálogo", Icons.Default.List)
+    object Catalog : Screen("catalog", "Catálogo", Icons.AutoMirrored.Filled.List)
     object Cart : Screen("cart", "Carrito", Icons.Default.ShoppingCart)
     object Pedido : Screen("pedido", "Resumen del Pedido")
     object MyOrders : Screen("my_orders", "Pedidos", Icons.Default.Receipt)
@@ -75,7 +74,10 @@ fun HuertoHogarApp() {
     val productoDao = db.productoDao()
     val pedidoDao = db.pedidoDao()
     val documentoDao = db.documentoDao()
-    val productoRepository = ProductoRepository(productoDao, context.assets, RetrofitClient.apiService)
+    
+    // --- CORREGIDO: Instanciamos la implementación, pero la variable es del tipo de la interfaz ---
+    val productoRepository: ProductoRepository = ProductoRepositoryImpl(productoDao, context.assets, RetrofitClient.apiService)
+    
     val userRepository = UserRepository(userDao)
     val pedidoRepository = PedidoRepository(pedidoDao)
     val documentoRepository = DocumentoRepository(documentoDao)
@@ -94,18 +96,10 @@ fun HuertoHogarApp() {
 
     // Pantallas sin barra de navegación
     val screensWithoutBars = listOf(
-        Screen.Splash.route,
-        Screen.Login.route,
-        Screen.Register.route,
-        Screen.ForgotPassword.route,
-        Screen.WelcomeUser.route,
-        Screen.WelcomeAdmin.route,
-        Screen.AdminPanel.route,
-        Screen.ProductManagement.route,
-        Screen.UserManagement.route,
-        Screen.OrderManagement.route,
-        Screen.DocumentManagement.route,
-        Screen.Confirmation.route,
+        Screen.Splash.route, Screen.Login.route, Screen.Register.route, 
+        Screen.ForgotPassword.route, Screen.WelcomeUser.route, Screen.WelcomeAdmin.route,
+        Screen.AdminPanel.route, Screen.ProductManagement.route, Screen.UserManagement.route, 
+        Screen.OrderManagement.route, Screen.DocumentManagement.route, Screen.Confirmation.route, 
         Screen.Pedido.route
     )
     val showBars = currentRoute !in screensWithoutBars
@@ -123,13 +117,11 @@ fun HuertoHogarApp() {
                         IconButton(onClick = {
                             authViewModel.logout()
                             navController.navigate(Screen.Login.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    inclusive = true
-                                }
+                                popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
                                 launchSingleTop = true
                             }
                         }) {
-                            Icon(Icons.Filled.ExitToApp, contentDescription = "Cerrar Sesión")
+                            Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Cerrar Sesión")
                         }
                     }
                 )
@@ -144,9 +136,7 @@ fun HuertoHogarApp() {
                             onClick = {
                                 if (currentRoute != screen.route) {
                                     navController.navigate(screen.route) {
-                                        popUpTo(navController.graph.findStartDestination().id) {
-                                            saveState = true
-                                        }
+                                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                                         launchSingleTop = true
                                         restoreState = true
                                     }
@@ -268,9 +258,7 @@ fun HuertoHogarApp() {
             val onLogout = {
                 authViewModel.logout()
                 navController.navigate(Screen.Login.route) {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        inclusive = true
-                    }
+                    popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
                     launchSingleTop = true
                 }
             }

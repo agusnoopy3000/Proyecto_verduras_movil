@@ -22,7 +22,6 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
-// --- Modelos del carrito ---
 data class CartItem(val product: Producto, val qty: Int)
 data class CartState(val items: List<CartItem> = emptyList()) {
     val total: Double get() = items.sumOf { it.product.precio * it.qty }
@@ -35,9 +34,8 @@ sealed class OrderProcessingState {
     data class Error(val message: String) : OrderProcessingState()
 }
 
-// --- ViewModel principal del carrito ---
 class CartViewModel(
-    private val productoRepository: ProductoRepository,
+    private val productoRepository: ProductoRepository, // <-- Depende de la interfaz
     private val pedidoDao: PedidoDao,
     private val userDao: UserDao
 ) : ViewModel() {

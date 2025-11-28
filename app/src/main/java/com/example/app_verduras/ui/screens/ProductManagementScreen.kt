@@ -14,8 +14,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -69,7 +69,7 @@ fun ProductManagementScreen(
                     },
                     actions = {
                         IconButton(onClick = onLogout) {
-                            Icon(Icons.Default.ExitToApp, "Cerrar Sesión")
+                            Icon(Icons.AutoMirrored.Filled.ExitToApp, "Cerrar Sesión")
                         }
                     }
                 )
@@ -104,7 +104,7 @@ fun ProductManagementScreen(
                             product = product,
                             onEditClick = { productToEdit = product }
                         )
-                        Divider()
+                        HorizontalDivider()
                     }
                 }
             }
